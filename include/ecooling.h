@@ -16,7 +16,7 @@ using std::vector;
 using std::initializer_list;
 
 enum class IonSample {SINGLE_PARTICLE, MONTE_CARLO};
-enum class ECoolRateScratch {XP_BET, YP_BET, XP, YP, DP_P, V_TR, V_LONG, FORCE_X, FORCE_Y, FORCE_Z};
+enum class ECoolRateScratch {XP_BET, YP_BET, XP, YP, DP_P, V_TR, V_LONG, FORCE_X, FORCE_Y, FORCE_Z, V_Y};
 
 class ECoolRate{
 protected:
@@ -29,7 +29,7 @@ protected:
     bool cooling_count = false;
     vector<double> ne;
     vector<double> xp_bet, yp_bet, xp, yp, dp_p, x, y, x_bet, y_bet;
-    vector<double> v_tr, v_long;
+    vector<double> v_tr, v_long, v_y; //For cooling with e- disp, use v_tr for horizontal v, v_y for vertical v.
     vector<double> force_x, force_y, force_z;
     void electron_density(Ions& ion_sample, EBeam &ebeam);
     void init_scratch(int n_sample);
@@ -43,6 +43,7 @@ protected:
     void apply_kick(int n_sample, Beam &ion, Ions& ion_sample);
     void save_force_sdds_head(std::ofstream& of, int n);
     FrictionForceSolver* force_solver_l;
+    bool symmetry_tr = true;    //Cylindrical symmetry in transverse direction.
 public:
     void set_save_force(bool b){save_force = b;}
     void set_dual_force_solver(bool b){dual_force_solver = b;}
@@ -70,6 +71,7 @@ public:
         ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
         return std::make_tuple(rx, ry, rs);
     }
+    void set_symmetry_tr(bool b){symmetry_tr = b;}
 
 };
 

@@ -44,7 +44,14 @@ void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
 //        v_long[i] /= (1-(v_long[i]+v)*ion.beta()/k_c);    //Convert to beam frame, when v_long<<v, canceled with the above line.
         v_long[i] = dp_p[i]*v;
-        v_tr[i] = sqrt(xp[i]*xp[i]+yp[i]*yp[i])*v;
+        if(symmetry_tr) {
+            v_tr[i] = sqrt(xp[i]*xp[i]+yp[i]*yp[i])*v;
+        }
+        else {
+            v_tr[i] = xp[i]*v;
+            v_y[i] = yp[i]*v;
+        }
+
     }
 }
 
@@ -65,6 +72,8 @@ void ECoolRate::init_scratch(int n_sample) {
     force_y.resize(n_sample);
     force_z.resize(n_sample);
     scratch_size = n_sample;
+    if (!symmetry_tr)
+        v_y.resize(n_sample);   //Cooling with e- dispersion. Use v_tr for horizontal. Cylindrical symmetry broken.
 }
 
 void ECoolRate::beam_frame(int n_sample, double gamma_e) {
@@ -72,6 +81,7 @@ void ECoolRate::beam_frame(int n_sample, double gamma_e) {
     for(int i=0; i<n_sample; ++i){
         v_tr[i] *= gamma_e;
         ne[i] *= gamma_e_inv;
+        if (!symmetry_tr) v_y[i] *= gamma_e;
     }
     t_cooler_ /= gamma_e;
 }
@@ -92,6 +102,22 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
         for(auto& v: v_long) {
             v -= cv_l;
         }
+    }
+    if(!symmetry_tr) {
+        if(ebeam.velocity() == Velocity::VARY) {
+            double gamma_e = ebeam.gamma();
+            vector<double>& v_avg_l = ebeam.get_v(EBeamV::V_AVG_L);
+            vector<double>& v_avg_h = ebeam.get_v(EBeamV::V_AVG_X);
+            vector<double>& v_avg_v = ebeam.get_v(EBeamV::V_AVG_Y);
+            for(int i=0; i<n_sample; ++i){
+                v_long.at(i) -= v_avg_l.at(i);
+                v_tr.at(i) -= v_avg_h.at(i)*gamma_e; //Transfer to beam frame.
+                v_y.at(i) -= v_avg_v.at(i)*gamma_e;
+            }
+        }
+        force_solver.friction_force(ion.charge_number(), n_sample, v_tr, v_y, v_long, ne, ebeam, cooler,
+                                    force_x, force_y, force_z);
+        return;
     }
     if(ebeam.velocity() == Velocity::VARY_Z) {
         vector<double>& v_avg_l = ebeam.get_v(EBeamV::V_AVG_L);
@@ -171,11 +197,16 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
             force_x[i] *= gamma_e_inv;
             v_tr[i] *= gamma_e_inv;
     }
+    if(!symmetry_tr) {
+        for(int i=0; i<n_sample; ++i)
+            v_y[i] *= gamma_e_inv;
+    }
     t_cooler_ *= gamma_e;
 }
 
 //Distribute to x and y direction
 void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
+    if(!symmetry_tr) return;
     double v0 = ion.beta()*k_c;
     vector<double>& xp = ion_sample.cdnt(Phase::XP);
     vector<double>& yp = ion_sample.cdnt(Phase::YP);
