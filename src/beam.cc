@@ -76,6 +76,22 @@ void EBeam::set_tpr(double tpr_tr, double tpr_long) {
     v_rms_l.at(0) = sqrt(tpr_long/k_me)*0.001*k_c;
 }
 
+void EBeam::set_tpr(double tpr_h, double tpr_y, double tpr_long) {
+    tpr_t.resize(1);
+    tpr_v.resize(1);
+    tpr_l.resize(1);
+    tpr_t.at(0) =  tpr_h;
+    tpr_v.at(0) = tpr_y;
+    tpr_l.at(0) = tpr_long;
+
+    v_rms_t.resize(1);
+    v_rms_v.resize(1);
+    v_rms_l.resize(1);
+    v_rms_t.at(0) = sqrt(tpr_h/k_me)*0.001*k_c;
+    v_rms_v.at(0) = sqrt(tpr_y/k_me)*0.001*k_c;
+    v_rms_l.at(0) = sqrt(tpr_long/k_me)*0.001*k_c;
+}
+
 void EBeam::set_v_rms(double v_rms_tr, double v_rms_long) {
     v_rms_t.resize(1);
     v_rms_l.resize(1);
@@ -84,6 +100,21 @@ void EBeam::set_v_rms(double v_rms_tr, double v_rms_long) {
     tpr_t.resize(1);
     tpr_l.resize(1);
     tpr_t.at(0) = v_rms_tr*v_rms_tr*k_me*1e6/(k_c*k_c);
+    tpr_l.at(0) = v_rms_long*v_rms_long*k_me*1e6/(k_c*k_c);
+}
+
+void EBeam::set_v_rms(double v_rms_h, double v_rms_y, double v_rms_long) {
+    v_rms_t.resize(1);
+    v_rms_v.resize(1);
+    v_rms_l.resize(1);
+    v_rms_t.at(0) = v_rms_h;
+    v_rms_v.at(0) = v_rms_y;
+    v_rms_l.at(0) = v_rms_long;
+    tpr_t.resize(1);
+    tpr_v.resize(1);
+    tpr_l.resize(1);
+    tpr_t.at(0) = v_rms_h*v_rms_h*k_me*1e6/(k_c*k_c);
+    tpr_v.at(0) = v_rms_y*v_rms_y*k_me*1e6/(k_c*k_c);
     tpr_l.at(0) = v_rms_long*v_rms_long*k_me*1e6/(k_c*k_c);
 }
 
@@ -420,15 +451,31 @@ void GaussianBunch::density(vector<double>& x, vector<double>& y, vector<double>
 
 void GaussianBunchDisp::initialize(double dx) {
     dx_ = dx;
-    Velocity velocity_ = Velocity::VARY_Z;
+//    Velocity velocity_ = Velocity::VARY_Z;
+    velocity_ = Velocity::VARY_Z;
+    if(!iszero(twiss_.alf_x)) velocity_ = Velocity::VARY;
     double dp_p = v_rms_l.at(0)/(beta_*k_c);
     double sigma_x2_new = sigma_x_*sigma_x_+dp_p*dp_p*dx*dx;
 
     k = beta_*k_c*dx*dp_p*dp_p/sigma_x2_new;
+    if (!iszero(twiss_.alf_x)) kx = beta_*k_c*twiss_.alf_x*sigma_x_*sigma_x_/(twiss_.bet_x*sigma_x2_new);
+    if (!iszero(twiss_.alf_y)) ky = beta_*k_c*twiss_.alf_y/twiss_.bet_y;
+
     tpr_l_org = tpr_l.at(0);
     v_rms_l_org = v_rms_l.at(0);
     double tpr_l_new = tpr_l_org*sigma_x_*sigma_x_/sigma_x2_new;
-    set_tpr(tpr_t.at(0), tpr_l_new);
+
+    tpr_tr_org = tpr_t.at(0);
+    double c = 0;
+    if(!iszero(twiss_.alf_x)) {
+        c = twiss_.alf_x*twiss_.alf_x*twiss_.disp_x*twiss_.disp_x*dp_p*dp_p/sigma_x2_new;
+        double tpr_h_new = tpr_tr_org*(1+c)/2;
+        double tpr_v_new = tpr_tr_org/2;
+        set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
+    }
+    else {
+        set_tpr(tpr_t.at(0), tpr_l_new);
+    }
     sigma_x_ = sqrt(sigma_x2_new);
 }
 
@@ -436,6 +483,16 @@ void GaussianBunchDisp::velocity_shift(vector<double>& x, vector<double>& y, vec
     if(v_avg_l.size()<n) v_avg_l.resize(n);
     for(int i=0; i<n; ++i){
         v_avg_l.at(i) = k*x.at(i);
+    }
+    if(iszero(twiss_.alf_x)) {
+        for(int i=0; i<n; ++i) {
+            v_avg_x.at(i) = kx*x.at(i);
+        }
+    }
+    if(iszero(twiss_.alf_y))  {
+        for(int i=0; i<n; ++i) {
+            v_avg_y.at(i) = ky*y.at(i);
+        }
     }
 }
 
@@ -445,6 +502,17 @@ void GaussianBunchDisp::velocity_shift(vector<double>& x, vector<double>& y, vec
     cx -= this->center(0);
     for(int i=0; i<n; ++i){
         v_avg_l.at(i) = k*(x.at(i)+cx);
+    }
+    if(iszero(twiss_.alf_x)) {
+        for(int i=0; i<n; ++i){
+            v_avg_x.at(i) = kx*(x.at(i)+cx);
+        }
+    }
+    if(iszero(twiss_.alf_y)) {
+        cy -= this->center(1);
+        for(int i=0; i<n; ++i){
+            v_avg_y.at(i) = ky*(y.at(i)+cy);
+        }
     }
 }
 
@@ -681,6 +749,17 @@ void EBeam::adjust_particle_location() {
         if (!iszero(dx_)) adjust_disp(dx_, samples->x, dp_p, samples->x, n_sample);
         if (!iszero(dy_)) adjust_disp(dy_, samples->y, dp_p, samples->y, n_sample);
     }
+}
+
+void EBeam::set_twiss(double dx, double dy, double betx, double bety, double alfx ,double alfy, double ddx, double ddy){
+    twiss_.disp_x = dx;
+    twiss_.disp_y = dy;
+    twiss_.bet_x = betx;
+    twiss_.bet_y = bety;
+    twiss_.alf_x = alfx;
+    twiss_.alf_y = alfy;
+    twiss_.disp_dx = ddx;
+    twiss_.disp_dy = ddy;
 }
 
 

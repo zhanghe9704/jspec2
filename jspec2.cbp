@@ -12,7 +12,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_73_x64_compiler" />
-				<Option parameters="../debug/test_bunched_cooling_non_mag_01_ebeam_disp.txt" />
+				<Option parameters="../debug/run_disp_2.txt" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-pg" />
@@ -33,7 +33,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gnu_gcc_73_x64_compiler" />
-				<Option parameters="../debug/test_bunched_cooling_non_mag_01_ebeam_disp.txt" />
+				<Option parameters="../debug/test_bunched_cooling_non_mag_01_ebeam_disp_backup.txt" />
 				<Compiler>
 					<Add option="-std=c++11" />
 					<Add option="-O3" />

@@ -29,6 +29,9 @@ public:
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
+    virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
+                                vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
+                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l){};
 };
 
 class ForcePark: public FrictionForceSolver {
@@ -65,6 +68,12 @@ public:
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
+};
+
+class ForceNonMagEDisp: public ForceNonMag {
+    virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
+                                vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
+                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l);
 };
 
 class ForceNonMagDerbenev: public ForceNonMag {

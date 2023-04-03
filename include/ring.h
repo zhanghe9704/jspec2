@@ -86,15 +86,4 @@ class Ring{
     void update_bet_s(){beta_s_ = beam_->sigma_s()/beam_->dp_p();}
 };
 
-struct Twiss{
-    double bet_x = 0;
-    double bet_y = 0;
-    double alf_x = 0;
-    double alf_y = 0;
-    double disp_x = 0;
-    double disp_y = 0;
-    double disp_dx = 0;
-    double disp_dy = 0;
-};
-
 #endif // RING_H

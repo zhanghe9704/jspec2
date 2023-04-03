@@ -10,6 +10,17 @@
 #include "arbitrary_electron_beam.h"
 #include "cooler.h"
 
+struct Twiss{
+    double bet_x = 0;
+    double bet_y = 0;
+    double alf_x = 0;
+    double alf_y = 0;
+    double disp_x = 0;
+    double disp_y = 0;
+    double disp_dx = 0;
+    double disp_dy = 0;
+};
+
 class Beam{
     int charge_number_;   //Number of charges
     double mass_number_;       //mass = A*u [MeV/c^2]
@@ -88,10 +99,12 @@ protected:
     double neutralisation_ = 2;
     Velocity velocity_ = Velocity::CONST;
     Temperature temperature_ = Temperature::CONST;
-    vector<double> tpr_t;
+    vector<double> tpr_t; //transverse T. Use for horizontal T with disp (cylindrical symmetry is broker).
     vector<double> tpr_l;
-    vector<double> v_rms_t;
+    vector<double> tpr_v; //Vertical T with disp (cylindrical symmetry is broker).
+    vector<double> v_rms_t; //transverse rms v. Use for horizontal velocity with disp (cylindrical symmetry is broker).
     vector<double> v_rms_l;
+    vector<double> v_rms_v; //Vertical rms v with disp (cylindrical symmetry is broker).
     vector<double> v_avg_x;
     vector<double> v_avg_y;
     vector<double> v_avg_l;
@@ -110,6 +123,7 @@ protected:
     bool disp_ = false;
     double dx_ = 0;
     double dy_ = 0;
+    Twiss twiss_;
 public:
     virtual ~EBeam(){};
     Velocity velocity() const {return velocity_;}
@@ -140,7 +154,9 @@ public:
     double center(int i) const { if (i<3&&i>-1) return center_[i]; else perror("Error index for electron beam center!"); return 1.0;}
     void set_center(int i, double x){if(i<3&&i>-1) center_[i]=x; else perror("Error index for electron beam center!");}
     void set_tpr(double tpr_tr, double trp_long);
+    void set_tpr(double tpr_h, double tpr_v,  double trp_long);
     void set_v_rms(double v_rms_tr, double v_rms_long);
+    void set_v_rms(double v_rms_h, double v_rms_v,  double v_rms_long);
     void set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long);
     void set_neutral(double x){neutralisation_ = x;}
     void set_multi_bunches(bool b){multi_bunches_ = b;}
@@ -172,6 +188,10 @@ public:
     bool disp(){return disp_;}
     double dx(){return dx_;}
     double dy(){return dy_;}
+    void set_twiss(double dx, double dy=0, double betx=0, double bety=0, double alfx=0, double alfy=0, double ddx = 0,
+                   double ddy = 0);
+    Twiss& twiss(){return twiss_;}
+
 //    EBeam& get_samples(){return *samples;}
 };
 
@@ -306,9 +326,12 @@ class GaussianBunch: public EBeam{
 class GaussianBunchDisp : public GaussianBunch {
     double v_rms_l_org = 0;  //Original longitudinal rml velocity without dispersion, used for Shape::BLASKIEWICZ.
     double tpr_l_org = 0; //Original longitudinal temperature without dispersion, used for Shape::BLASKIEWICZ.
+    double tpr_tr_org = 0; //Original transverse temperature without dispersion, used for Shape::BLASKIEWICZ.
     void velocity_shift(vector<double>& x, vector<double>& y, vector<double>& z, int n);
     void velocity_shift(vector<double>& x, vector<double>& y, vector<double>& z, int n, double cx, double cy, double cz);
     double k = 0; //Coefficient to calculate velocity shift
+    double kx = 0; //Coefficient to calculate velocity shift in horizontal direction.
+    double ky = 0; //Coefficient to calculate velocity shift in vertical direction.
  public:
     Shape shape() const {return Shape::BLASKIEWICZ;}
     void initialize(double dx);
