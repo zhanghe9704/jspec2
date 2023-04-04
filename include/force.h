@@ -70,12 +70,6 @@ public:
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
 };
 
-class ForceNonMagEDisp: public ForceNonMag {
-    virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
-                                vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
-                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l);
-};
-
 class ForceNonMagDerbenev: public ForceNonMag {
 private:
     double rho_max_ve_tr(double ve_tr, double ne);
@@ -417,6 +411,9 @@ public:
 //    void set_gsl(bool b) {use_gsl = b;}
     void set_mean_rho_min(bool b) {use_mean_rho_min = b;}
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run = true;}
+    virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
+                                vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
+                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l);
     ForceNonMagNumeric3DBlaskiewicz(int n=100);
     ~ForceNonMagNumeric3DBlaskiewicz();
 };
