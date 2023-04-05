@@ -1307,14 +1307,18 @@ void ForceNonMagNumeric3DBlaskiewicz::friction_force(int charge_number, int ion_
 
     vector<double>& ve_rms_l = ebeam.get_v(EBeamV::V_RMS_L);
     vector<double>& ve_rms_tr = ebeam.get_v(EBeamV::V_RMS_TR);
+    vector<double>& ve_rms_v = ebeam.get_v(EBeamV::V_RMS_V);
 
-    force_tr.resize(ion_number);
-    force_long.resize(ion_number);
+    force_h.resize(ion_number);
+    force_v.resize(ion_number);
+    force_l.resize(ion_number);
 
     switch(tpr) {
     case Temperature::CONST: {
         double ve_l = ve_rms_l.at(0);
-        double ve_tr = ve_rms_tr.at(0);
+        double ve_h = ve_rms_tr.at(0);
+        double ve_v = ve_rms_v.at(0);
+        double ve_tr = sqrt(ve_h*ve_h+ve_v*ve_v);
         double ve2 = ve_l*ve_l + ve_tr*ve_tr;
 
         #ifdef _OPENMP
@@ -1322,19 +1326,21 @@ void ForceNonMagNumeric3DBlaskiewicz::friction_force(int charge_number, int ion_
         #endif // _OPENMP
         for(int i=0; i<ion_number; ++i) {
             if(iszero(density_e.at(i))) {
-                force_tr[i] = 0;
-                force_long[i] = 0;
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
                 continue;
             }
-            double v2 = v_tr[i]*v_tr[i]+v_long[i]*v_long[i];
+            double v2 = v_h[i]*v_h[i]+v_v[i]*v_v[i]+v_l[i]*v_l[i];
             double v = sqrt(v2);
             if(v2>0) {
                  force(v, v_tr[i], v_long[i], v2, ve_tr, ve_l, ve2, f_const, rho_min_const,  charge_number,
                        density_e.at(i), force_tr[i], force_long[i]);
             }
             else {
-                force_tr[i] = 0;
-                force_long[i] = 0;
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
             }
         }
         break;
@@ -1345,25 +1351,29 @@ void ForceNonMagNumeric3DBlaskiewicz::friction_force(int charge_number, int ion_
         #endif // _OPENMP
         for(int i=0; i<ion_number; ++i) {
             if(iszero(density_e.at(i))) {
-                force_tr[i] = 0;
-                force_long[i] = 0;
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
                 continue;
             }
-            double v2 = v_tr[i]*v_tr[i]+v_long[i]*v_long[i];
+            double v2 = v_h[i]*v_h[i]+v_v[i]*v_v[i]+v_l[i]*v_l[i];
             double v = sqrt(v2);
             if(v2>0) {
                 double ve_l = ve_rms_l.at(i);
-                double ve_tr = ve_rms_tr.at(i);
+                double ve_h = ve_rms_tr.at(i);
+                double ve_v = ve_rms_v.at(i);
+                double ve_tr = sqrt(ve_h*ve_h+ve_v*ve_v);
                 double ve2 = ve_l*ve_l + ve_tr*ve_tr;
                 force(v, v_tr[i], v_long[i], v2, ve_tr, ve_l, ve2, f_const, rho_min_const, charge_number,
                       density_e.at(i), force_tr[i], force_long[i]);
-                if(std::isnan(force_tr[i])) {
-                    std::cout<<i<<' '<<ve_l<<' '<<ve_tr<<' '<<ve2<<' '<<density_e.at(i)<<std::endl;
-                }
+//                if(std::isnan(force_tr[i])) {
+//                    std::cout<<i<<' '<<ve_l<<' '<<ve_tr<<' '<<ve2<<' '<<density_e.at(i)<<std::endl;
+//                }
             }
             else {
-                force_tr[i] = 0;
-                force_long[i] = 0;
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
             }
         }
         break;

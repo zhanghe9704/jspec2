@@ -84,7 +84,7 @@ enum class Shape {UNIFORM_CYLINDER, GAUSSIAN_BUNCH, UNIFORM_BUNCH, GAUSSIAN_CYLI
 
 enum class Velocity {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
 enum class Temperature {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
-enum class EBeamV {TPR_TR, TPR_L, V_RMS_TR, V_RMS_L, V_AVG_X, V_AVG_Y, V_AVG_L};
+enum class EBeamV {TPR_TR, TPR_L, V_RMS_TR, V_RMS_L, V_AVG_X, V_AVG_Y, V_AVG_L, TPR_V, V_RMS_V, V_RMS_RHO, V_RMS_KRHO};
 enum class EdgeEffect {Rising, Falling};
 
 class ParticleBunch;
@@ -108,6 +108,8 @@ protected:
     vector<double> v_avg_x;
     vector<double> v_avg_y;
     vector<double> v_avg_l;
+    vector<double> v_rms_rho;
+    vector<double> v_rms_krho;  //Used for cooling with electron disperison krho = 1/sqrt(1-rho^2)
     bool multi_bunches_ = false;
     int n_ = 1; //Number of bunches
     vector<double> cx_;     //List of cxs.

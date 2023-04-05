@@ -60,6 +60,10 @@ vector<double>& EBeam::get_v(EBeamV v) {
     case EBeamV::V_AVG_X: return v_avg_x;
     case EBeamV::V_AVG_Y: return v_avg_y;
     case EBeamV::V_AVG_L: return v_avg_l;
+    case EBeamV::TPR_V: return tpr_v;
+    case EBeamV::V_RMS_V: return v_rms_v;
+    case EBeamV::V_RMS_RHO: return v_rms_rho;
+    case EBeamV::V_RMS_KRHO: return v_rms_krho;
     default:perror("Wrong phase coordinate selected!");return tpr_t;
     }
 }
@@ -472,6 +476,11 @@ void GaussianBunchDisp::initialize(double dx) {
         double tpr_h_new = tpr_tr_org*(1+c)/2;
         double tpr_v_new = tpr_tr_org/2;
         set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
+        v_rms_krho.resize(1);
+        v_rms_rho.resize(1);
+        double rho2= c*sigma_x2_new/(sigma_x_*sigma_x_+dp_p*dp_p*dx*dx*(1+twiss_.alf_x*twiss_.alf_x));
+        v_rms_rho.at(0) = sqrt(rho2);
+        v_rms_rho.at(0) = 1/sqrt(1-rho2);
     }
     else {
         set_tpr(tpr_t.at(0), tpr_l_new);
@@ -485,11 +494,13 @@ void GaussianBunchDisp::velocity_shift(vector<double>& x, vector<double>& y, vec
         v_avg_l.at(i) = k*x.at(i);
     }
     if(iszero(twiss_.alf_x)) {
+        if(v_avg_x.size()<n) v_avg_x.resize(n);
         for(int i=0; i<n; ++i) {
             v_avg_x.at(i) = kx*x.at(i);
         }
     }
     if(iszero(twiss_.alf_y))  {
+        if(v_avg_y.size()<n) v_avg_y.resize(n);
         for(int i=0; i<n; ++i) {
             v_avg_y.at(i) = ky*y.at(i);
         }
