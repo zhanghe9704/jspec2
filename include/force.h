@@ -359,7 +359,7 @@ private:
     static double mean_lc;
     #pragma omp threadprivate(mean_rho_min, mean_lc)
     static bool first_run;
-    static vector<vector<double>> exp_vtr;
+    static vector<vector<vector<double>>> exp_v;
     static vector<double> hlf_v2tr;
     static vector<double> hlf_v2l;
     static vector<vector<double>> vtr_cos;
@@ -370,19 +370,20 @@ private:
     #else
     double mean_rho_min = 0;
     double mean_lc = 0;
-    vector<vector<double>> exp_vtr;
+    vector<vector<vector<double>>> exp_v;
     vector<double> hlf_v2tr;
     vector<double> hlf_v2l;
     vector<vector<double>> vtr_cos;
+    vector<double> vh;
+    vector<double> vv;
     vector<double> vl;
-    vector<double> vtr;
     vector<vector<double>> v2tr_sin2;
     bool first_run = true;
     #endif // _OPENMP
     bool const_tmpr = true;
-    int n_tr = 20;
-    int n_l = 10;
-    int n_phi = 10;
+    int n_h = 20;
+    int n_v = 20;
+    int n_l = 20;
     double d;
     double f_inv_norm;
 

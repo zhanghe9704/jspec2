@@ -1174,63 +1174,48 @@ void ForceNonMagNumeric3DBlaskiewicz::init(EBeam& ebeam) {
     }
 }
 
-void ForceNonMagNumeric3DBlaskiewicz::pre_int(double sgm_vtr, double sgm_vl) {
-    hlf_v2tr.resize(n_tr);
-    hlf_v2l.resize(n_l);
-    vtr_cos.resize(n_phi,vector<double>(n_tr));
+void ForceNonMagNumeric3DBlaskiewicz::pre_int(double sgm_vh, double sgm_vv, double sgm_vl) {
+    vh.resize(n_h);
+    vv.resize(n_v);
     vl.resize(n_l);
-    vtr.resize(n_tr);
-    v2tr_sin2.resize(n_phi,vector<double>(n_tr));
-
-    vector<double> phi(n_phi);
-
-    double d_phi = k_pi/n_phi;
-    phi.at(0) = d_phi/2;
-    for(int i=1; i<n_phi; ++i) phi.at(i) = phi.at(i-1) + d_phi;
-
-    double d_vtr = 3*sgm_vtr/n_tr;
-    vtr.at(0) = d_vtr/2;
-    for(int i=1; i<n_tr; ++i) vtr.at(i) = vtr.at(i-1) + d_vtr;
 
     double d_vl = 6*sgm_vl/n_l;
     vl.at(0) = -3*sgm_vl + d_vl/2;
     for(int i=1; i<n_l; ++i) vl.at(i) = vl.at(i-1) + d_vl;
 
-    d = d_phi*d_vtr*d_vl;
+    double d_vh = 6*sgm_vh/n_h;
+    vh.at(0) = -3*sgm_vh + d_vh/2;
+    for(int i=1; i<n_h; ++i) vh.at(i) = vh.at(i-1) + d_vh;
 
-    for(int i=0; i<n_tr; ++i) hlf_v2tr.at(i) = vtr.at(i)*vtr.at(i);
-    for(int i=0; i<n_l; ++i) hlf_v2l.at(i) = -vl.at(i)*vl.at(i)/2;
-    for(auto& e: vl) e*= -1;
-    for(auto& e: phi) e = cos(e);   //cos(phi)
-    for(int i=0; i<n_phi; ++i) {
-        for(int j=0; j<n_tr; ++j) {
-            vtr_cos.at(i).at(j) = -phi.at(i)*vtr.at(j);
-        }
-    }
-    for(auto& e: phi) e = 1 - e*e;   //sin(phi)*sin(phi)
-    for(int i=0; i<n_phi; ++i) {
-        for(int j=0; j<n_tr; ++j) {
-            v2tr_sin2.at(i).at(j) = hlf_v2tr.at(j)*phi.at(i);
-        }
-    }
-
-    for(auto& e: hlf_v2tr) e /= -2;
+    double d_vv = 6*sgm_vv/n_v;
+    vv.at(0) = -3*sgm_vv + d_vv/2;
+    for(int i=1; i<n_l; ++i) vv.at(i) = vv.at(i-1) + d_vv;
 }
 
-void ForceNonMagNumeric3DBlaskiewicz::calc_exp_vtr(double sgm_vtr, double sgm_vl) {
-    exp_vtr.resize(n_l, vector<double>(n_tr));
-    double inv_ve2_tr = 1/(sgm_vtr*sgm_vtr);
-    double inv_ve2_l = 1/(sgm_vl*sgm_vl);
+void ForceNonMagNumeric3DBlaskiewicz::calc_inv_norm(double sgm_vh, double sgm_vv, double sgm_vl, double rho, double krho) {
+    exp_v.resize(n_l, vector<double>(n_v, vector<double>(n_h)));
+    double inv_ve2_h = -1/(2*sgm_vh*sgm_vh);
+    double inv_ve2_l = -1/(2*sgm_vl*sgm_vl);
+    double inv_ve2_v = -1/(2*sgm_vv*sgm_vv);
+    double inv_vhvl = rho/(sgm_vh*sgm_vl);
+    double krho2 = krho*krho;
+    double bottom = 2*k_pi*sqrt(2*k_pi)*sgm_vh*sgm_vv*sgm_vl/krho;
+
+
     for(int i=0; i<n_l; ++i) {
-        for(int j=0; j<n_tr; ++j) {
-            exp_vtr.at(i).at(j) = exp(hlf_v2tr.at(j)*inv_ve2_tr + hlf_v2l.at(i)*inv_ve2_l)*vtr.at(j);
+        for(int j=0; j<n_v; ++j) {
+            for(int k=0; k<n_h; ++k) {
+                exp_v.at(i).at(j).at(k) = exp((inv_ve2_h*vh.at(k)*vh.at(k) + inv_ve2_l*vl.at(i)*vl.at(i)
+                                            + inv_vhvl*vh.at(k)*vl.at(i))*krho2 + inv_ve2_v*vv.at(j)*vv.at(j));
+            }
         }
     }
     f_inv_norm = 0;
-    for(auto&v:exp_vtr)
-        for(auto&e:v)
-            f_inv_norm+=e;
-    f_inv_norm = 1/(n_phi*f_inv_norm);
+    for(auto&vv:exp_v)
+        for(auto&v:vv)
+            for(auto& e:v)
+                f_inv_norm+=e;
+    f_inv_norm = bottom/f_inv_norm;
 }
 
 #ifdef _OPENMP
