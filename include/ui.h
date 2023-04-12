@@ -152,6 +152,12 @@ struct Set_e_beam{
      double cv_l = 0;
      double dx = 0;
      double dy = 0;
+     double betx=0;
+     double bety=0;
+     double alfx=0;
+     double alfy=0;
+     double ddx = 0;
+     double ddy = 0;
 };
 
 struct Set_dynamic{

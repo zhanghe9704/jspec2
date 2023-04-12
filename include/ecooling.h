@@ -43,7 +43,7 @@ protected:
     void apply_kick(int n_sample, Beam &ion, Ions& ion_sample);
     void save_force_sdds_head(std::ofstream& of, int n);
     FrictionForceSolver* force_solver_l;
-    bool symmetry_tr = true;    //Cylindrical symmetry in transverse direction.
+    bool symmetry_vtr = true;    //Cylindrical symmetry in transverse direction.
 public:
     void set_save_force(bool b){save_force = b;}
     void set_dual_force_solver(bool b){dual_force_solver = b;}
@@ -71,8 +71,6 @@ public:
         ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
         return std::make_tuple(rx, ry, rs);
     }
-    void set_symmetry_tr(bool b){symmetry_tr = b;}
-
 };
 
 class ForceCurve: public ECoolRate {

@@ -109,7 +109,7 @@ protected:
     vector<double> v_avg_y;
     vector<double> v_avg_l;
     vector<double> v_rms_rho;
-    vector<double> v_rms_krho;  //Used for cooling with electron disperison krho = 1/sqrt(1-rho^2)
+    vector<double> v_rms_krho;  //Used for cooling with electron disperison krho = 1/(1-rho^2)
     bool multi_bunches_ = false;
     int n_ = 1; //Number of bunches
     vector<double> cx_;     //List of cxs.
@@ -126,6 +126,7 @@ protected:
     double dx_ = 0;
     double dy_ = 0;
     Twiss twiss_;
+    bool symmetry_vtr_ = true;  //Axial symmetry of transverse velocity. It's broken when dispersion exists and alpha != 0.
 public:
     virtual ~EBeam(){};
     Velocity velocity() const {return velocity_;}
@@ -193,6 +194,7 @@ public:
     void set_twiss(double dx, double dy=0, double betx=0, double bety=0, double alfx=0, double alfy=0, double ddx = 0,
                    double ddy = 0);
     Twiss& twiss(){return twiss_;}
+    bool symmetry_vtr(){return symmetry_vtr_;}
 
 //    EBeam& get_samples(){return *samples;}
 };

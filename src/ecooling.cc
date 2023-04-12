@@ -44,7 +44,7 @@ void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
 //        v_long[i] /= (1-(v_long[i]+v)*ion.beta()/k_c);    //Convert to beam frame, when v_long<<v, canceled with the above line.
         v_long[i] = dp_p[i]*v;
-        if(symmetry_tr) {
+        if(symmetry_vtr) {
             v_tr[i] = sqrt(xp[i]*xp[i]+yp[i]*yp[i])*v;
         }
         else {
@@ -72,7 +72,7 @@ void ECoolRate::init_scratch(int n_sample) {
     force_y.resize(n_sample);
     force_z.resize(n_sample);
     scratch_size = n_sample;
-    if (!symmetry_tr)
+    if (!symmetry_vtr)
         v_y.resize(n_sample);   //Cooling with e- dispersion. Use v_tr for horizontal. Cylindrical symmetry broken.
 }
 
@@ -81,7 +81,7 @@ void ECoolRate::beam_frame(int n_sample, double gamma_e) {
     for(int i=0; i<n_sample; ++i){
         v_tr[i] *= gamma_e;
         ne[i] *= gamma_e_inv;
-        if (!symmetry_tr) v_y[i] *= gamma_e;
+        if (!symmetry_vtr) v_y[i] *= gamma_e;
     }
     t_cooler_ /= gamma_e;
 }
@@ -103,7 +103,7 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
             v -= cv_l;
         }
     }
-    if(!symmetry_tr) {
+    if(!symmetry_vtr) {
         if(ebeam.velocity() == Velocity::VARY) {
             double gamma_e = ebeam.gamma();
             vector<double>& v_avg_l = ebeam.get_v(EBeamV::V_AVG_L);
@@ -197,7 +197,7 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
             force_x[i] *= gamma_e_inv;
             v_tr[i] *= gamma_e_inv;
     }
-    if(!symmetry_tr) {
+    if(!symmetry_vtr) {
         for(int i=0; i<n_sample; ++i)
             v_y[i] *= gamma_e_inv;
     }
@@ -206,7 +206,7 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 
 //Distribute to x and y direction
 void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
-    if(!symmetry_tr) return;
+    if(!symmetry_vtr) return;
     double v0 = ion.beta()*k_c;
     vector<double>& xp = ion_sample.cdnt(Phase::XP);
     vector<double>& yp = ion_sample.cdnt(Phase::YP);
@@ -261,6 +261,7 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
                 Ring &ring, double &rate_x, double &rate_y, double &rate_s) {
 
     int n_sample = ion_sample.n_sample();
+    symmetry_vtr = ebeam.symmetry_vtr();
     if(n_sample>scratch_size) init_scratch(n_sample);
 
 //    electron_density(ion_sample,ebeam);

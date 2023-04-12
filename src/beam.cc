@@ -457,6 +457,7 @@ void GaussianBunchDisp::initialize(double dx) {
     dx_ = dx;
 //    Velocity velocity_ = Velocity::VARY_Z;
     velocity_ = Velocity::VARY_Z;
+    if(!iszero(twiss_.alf_x) && !iszero(dx_)) symmetry_vtr_ = false;
     if(!iszero(twiss_.alf_x)) velocity_ = Velocity::VARY;
     double dp_p = v_rms_l.at(0)/(beta_*k_c);
     double sigma_x2_new = sigma_x_*sigma_x_+dp_p*dp_p*dx*dx;
@@ -480,7 +481,7 @@ void GaussianBunchDisp::initialize(double dx) {
         v_rms_rho.resize(1);
         double rho2= c*sigma_x2_new/(sigma_x_*sigma_x_+dp_p*dp_p*dx*dx*(1+twiss_.alf_x*twiss_.alf_x));
         v_rms_rho.at(0) = sqrt(rho2);
-        v_rms_rho.at(0) = 1/sqrt(1-rho2);
+        v_rms_krho.at(0) = 1/(1-rho2);
     }
     else {
         set_tpr(tpr_t.at(0), tpr_l_new);

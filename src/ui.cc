@@ -46,7 +46,7 @@ std::vector<string> E_BEAM_ARGS = {"GAMMA", "TMP_TR", "TMP_L", "SHAPE", "RADIUS"
     "SIGMA_Z", "LENGTH", "E_NUMBER", "RH", "RV", "R_INNER", "R_OUTTER", "PARTICLE_FILE", "TOTAL_PARTICLE_NUMBER",
     "BOX_PARTICLE_NUMBER", "LINE_SKIP", "VEL_POS_CORR","BINARY_FILE","BUFFER_SIZE","MULTI_BUNCHES", "LIST_CX",
     "LIST_CY", "LIST_CZ", "P_SHIFT", "V_SHIFT", "RISE_TIME", "FALL_TIME", "CV_L", "SIGMA_XP", "SIGMA_YP", "SIGMA_DPP",
-    "DX", "DY"};
+     "DISP_X", "DISP_Y", "BET_X", "BET_Y", "ALPHA_X", "ALPHA_Y", "DISP_DX", "DISP_DY"};
 std::vector<string> ECOOL_ARGS = {"SAMPLE_NUMBER", "FORCE_FORMULA", "TMP_EFF", "V_EFF", "SMOOTH_RHO_MAX", "USE_GSL",
     "N_TR", "N_L", "N_PHI", "USE_MEAN_RHO_MIN",  "MODEL", "SAMPLE_NUMBER_TR", "SAMPLE_NUMBER_L","N_STEP", "SMOOTH_FACTOR",
     "MAGNETIC_ONLY", "DUAL_FORCE", "FORCE_FORMULA_L", "FORCE_OUTPUT", "LIMIT_ANGLE", "LIMIT_MOMENTUM_SPREAD",
@@ -293,11 +293,29 @@ void define_e_beam(string &str, Set_e_beam *e_beam_args) {
             else if (var == "CV_L") {
                 e_beam_args->cv_l = std::stod(val);
             }
-            else if (var == "DX") {
+            else if (var == "DISP_X") {
                 e_beam_args->dx = std::stod(val);
             }
-            else if (var == "DY") {
+            else if (var == "DISP_Y") {
                 e_beam_args->dy = std::stod(val);
+            }
+            else if (var == "DISP_DX") {
+                e_beam_args->ddx = std::stod(val);
+            }
+            else if (var == "DISP_DY") {
+                e_beam_args->ddy = std::stod(val);
+            }
+            else if (var == "ALPHA_X") {
+                e_beam_args->alfx = std::stod(val);
+            }
+            else if (var == "ALPHA_Y") {
+                e_beam_args->alfy = std::stod(val);
+            }
+            else if (var == "BET_X") {
+                e_beam_args->betx = std::stod(val);
+            }
+            else if (var == "BET_Y") {
+                e_beam_args->bety = std::stod(val);
             }
             else {
                 assert(false&&"Wrong arguments in section_e_beam!");
@@ -377,11 +395,29 @@ void define_e_beam(string &str, Set_e_beam *e_beam_args) {
             else if (var == "CV_L") {
                 e_beam_args->cv_l = mupEval(math_parser);
             }
-            else if (var == "DX") {
+            else if (var == "DISP_X") {
                 e_beam_args->dx = mupEval(math_parser);
             }
-            else if (var == "DY") {
+            else if (var == "DISP_Y") {
                 e_beam_args->dy = mupEval(math_parser);
+            }
+            else if (var == "DISP_DX") {
+                e_beam_args->ddx = mupEval(math_parser);
+            }
+            else if (var == "DISP_DY") {
+                e_beam_args->ddy = mupEval(math_parser);
+            }
+            else if (var == "ALPHA_X") {
+                e_beam_args->alfx = mupEval(math_parser);
+            }
+            else if (var == "ALPHA_Y") {
+                e_beam_args->alfy = mupEval(math_parser);
+            }
+            else if (var == "BET_X") {
+                e_beam_args->betx = mupEval(math_parser);
+            }
+            else if (var == "BET_Y") {
+                e_beam_args->bety = mupEval(math_parser);
             }
             else {
                 assert(false&&"Wrong arguments in section_e_beam!");
@@ -400,6 +436,12 @@ void create_e_beam(Set_ptrs &ptrs) {
     double tmp_l = ptrs.e_beam_ptr->tmp_l;
     double dx = ptrs.e_beam_ptr->dx;
     double dy = ptrs.e_beam_ptr->dy;
+    double ddx = ptrs.e_beam_ptr->ddx;
+    double ddy = ptrs.e_beam_ptr->ddy;
+    double alfx = ptrs.e_beam_ptr->alfx;
+    double alfy = ptrs.e_beam_ptr->alfy;
+    double betx = ptrs.e_beam_ptr->betx;
+    double bety = ptrs.e_beam_ptr->bety;
     assert(gamma>0 && tmp_tr >= 0 && tmp_l >= 0 && "WRONG PARAMETER VALUE FOR ELECTRON BEAM!");
 
     if (shape == "DC_UNIFORM") {
@@ -531,6 +573,7 @@ void create_e_beam(Set_ptrs &ptrs) {
     if(!iszero(ptrs.e_beam_ptr->cv_l)) ptrs.e_beam->set_cv_l(ptrs.e_beam_ptr->cv_l);
     if(!iszero(dx) || !iszero(dy)) {
         ptrs.e_beam->set_disp(dx,dy);
+        ptrs.e_beam->set_twiss(dx, dy, betx, bety, alfx, alfy, ddx, ddy);
         if (shape == "BUNCHED_GAUSSIAN_DISP") {
              GaussianBunchDisp* ptr = dynamic_cast<GaussianBunchDisp*>(ptrs.e_beam.get());
              ptr->initialize(dx);
