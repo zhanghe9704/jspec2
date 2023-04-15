@@ -1189,7 +1189,7 @@ void ForceNonMagNumeric3DBlaskiewicz::pre_int(double sgm_vh, double sgm_vv, doub
 
     double d_vv = 6*sgm_vv/n_v;
     vv.at(0) = -3*sgm_vv + d_vv/2;
-    for(int i=1; i<n_l; ++i) vv.at(i) = vv.at(i-1) + d_vv;
+    for(int i=1; i<n_v; ++i) vv.at(i) = vv.at(i-1) + d_vv;
 }
 
 void ForceNonMagNumeric3DBlaskiewicz::calc_exp_v(double sgm_vh, double sgm_vv, double sgm_vl, double rho, double krho) {
@@ -1206,6 +1206,9 @@ void ForceNonMagNumeric3DBlaskiewicz::calc_exp_v(double sgm_vh, double sgm_vv, d
             for(int k=0; k<n_h; ++k) {
                 exp_v.at(i).at(j).at(k) = exp((inv_ve2_h*vh.at(k)*vh.at(k) + inv_ve2_l*vl.at(i)*vl.at(i)
                                             + inv_vhvl*vh.at(k)*vl.at(i))*krho + inv_ve2_v*vv.at(j)*vv.at(j));
+
+//                exp_v.at(i).at(j).at(k) = exp(inv_ve2_h*vh.at(k)*vh.at(k) + inv_ve2_l*vl.at(i)*vl.at(i)
+//                                             + inv_ve2_v*vv.at(j)*vv.at(j));
             }
         }
     }
@@ -1270,22 +1273,23 @@ void ForceNonMagNumeric3DBlaskiewicz::force_grid(double v, double v_h, double v_
     double lc = 0;
     for(int i=0; i<n_l; ++i) {
         double sub_vl = v_l - vl.at(i);
-        double vsub2 = sub_vl*sub_vl;
+        double vlsub2 = sub_vl*sub_vl;
         for(int j=0; j<n_v; ++j) {
             double sub_vv = v_v - vv.at(j);
-            vsub2 += sub_vv*sub_vv;
+            double vvsub2 = sub_vv*sub_vv;
             for(int k=0; k<n_h; ++k) {
                 double sub_vh = v_h - vh.at(k);
-                vsub2 += sub_vh*sub_vh;
+                double vhsub2 = sub_vh*sub_vh;
+                double vsub2 = vhsub2+vvsub2+vlsub2;
                 double inv_vsub3 = 1/(vsub2*sqrt(vsub2));
                 if(use_mean_rho_min) lc = mean_lc;
                 else {
                     double rho_min = this->rho_min_const(charge_number)/vsub2;
                     lc = rho_max>rho_min?log(rho_max/rho_min):0;
                 }
-                f_h += exp_v.at(i).at(j).at(k)*sub_vh*inv_vsub3;
-                f_v += exp_v.at(i).at(j).at(k)*sub_vv*inv_vsub3;
-                f_l += exp_v.at(i).at(j).at(k)*sub_vl*inv_vsub3;
+                f_h += lc*exp_v.at(i).at(j).at(k)*sub_vh*inv_vsub3;
+                f_v += lc*exp_v.at(i).at(j).at(k)*sub_vv*inv_vsub3;
+                f_l += lc*exp_v.at(i).at(j).at(k)*sub_vl*inv_vsub3;
             }
         }
     }
@@ -1311,7 +1315,7 @@ void ForceNonMagNumeric3DBlaskiewicz::force(double v, double v_h, double v_v, do
 
 void ForceNonMagNumeric3DBlaskiewicz::friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
                                 vector<double>& v_l, vector<double>& density_e, EBeam& ebeam, Cooler& cooler,
-                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l) {
+                                vector<double>& force_h, vector<double>& force_v, vector<double>& force_l) {
     init(ebeam);
     double f_const = this->f_const(charge_number);
     double rho_min_const = this->rho_min_const(charge_number);

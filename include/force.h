@@ -10,7 +10,8 @@
 
 
 using std::vector;
-enum class ForceFormula {PARKHOMCHUK, NONMAG_DERBENEV, NONMAG_MESHKOV, NONMAG_NUM1D, NONMAG_NUM3D, MESHKOV, DSM};
+enum class ForceFormula {PARKHOMCHUK, NONMAG_DERBENEV, NONMAG_MESHKOV, NONMAG_NUM1D, NONMAG_NUM3D, MESHKOV, DSM,
+    NONMAG_NUM3D_MB};
 
 class FrictionForceSolver{
 protected:
@@ -31,7 +32,7 @@ public:
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
     virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
                                 vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
-                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l){};
+                                vector<double>& force_h, vector<double>& force_v, vector<double>& force_l){};
 };
 
 class ForcePark: public FrictionForceSolver {
@@ -411,8 +412,8 @@ public:
     void set_grid(int nh, int nv, int nl){n_h = nh; n_l = nl; n_v = nv; first_run = true;}
     virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
                                 vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
-                                vector<double>& force_h, vector<double>& force_v, vector<double> force_l);
-    ForceNonMagNumeric3DBlaskiewicz(int n=100);
+                                vector<double>& force_h, vector<double>& force_v, vector<double>& force_l);
+    ForceNonMagNumeric3DBlaskiewicz(int n=100){};
     ~ForceNonMagNumeric3DBlaskiewicz();
 };
 

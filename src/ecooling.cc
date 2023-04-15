@@ -111,8 +111,18 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
             vector<double>& v_avg_v = ebeam.get_v(EBeamV::V_AVG_Y);
             for(int i=0; i<n_sample; ++i){
                 v_long.at(i) -= v_avg_l.at(i);
-                v_tr.at(i) -= v_avg_h.at(i)*gamma_e; //Transfer to beam frame.
-                v_y.at(i) -= v_avg_v.at(i)*gamma_e;
+//                v_tr.at(i) -= v_avg_h.at(i)*gamma_e; //Transfer to beam frame.
+//                v_y.at(i) -= v_avg_v.at(i)*gamma_e;
+            }
+
+            if(!iszero(ebeam.twiss().alf_x)){
+                for(int i=0; i<n_sample; ++i)
+                    v_tr.at(i) -= v_avg_h.at(i)*gamma_e; //Transfer to beam frame.
+            }
+
+            if(!iszero(ebeam.twiss().alf_y)){
+                for(int i=0; i<n_sample; ++i)
+                    v_y.at(i) -= v_avg_v.at(i)*gamma_e; //Transfer to beam frame.
             }
         }
         force_solver.friction_force(ion.charge_number(), n_sample, v_tr, v_y, v_long, ne, ebeam, cooler,
@@ -198,8 +208,10 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
             v_tr[i] *= gamma_e_inv;
     }
     if(!symmetry_vtr) {
-        for(int i=0; i<n_sample; ++i)
+        for(int i=0; i<n_sample; ++i){
+            force_y[i] *= gamma_e_inv;
             v_y[i] *= gamma_e_inv;
+        }
     }
     t_cooler_ *= gamma_e;
 }

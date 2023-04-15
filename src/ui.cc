@@ -50,9 +50,9 @@ std::vector<string> E_BEAM_ARGS = {"GAMMA", "TMP_TR", "TMP_L", "SHAPE", "RADIUS"
 std::vector<string> ECOOL_ARGS = {"SAMPLE_NUMBER", "FORCE_FORMULA", "TMP_EFF", "V_EFF", "SMOOTH_RHO_MAX", "USE_GSL",
     "N_TR", "N_L", "N_PHI", "USE_MEAN_RHO_MIN",  "MODEL", "SAMPLE_NUMBER_TR", "SAMPLE_NUMBER_L","N_STEP", "SMOOTH_FACTOR",
     "MAGNETIC_ONLY", "DUAL_FORCE", "FORCE_FORMULA_L", "FORCE_OUTPUT", "LIMIT_ANGLE", "LIMIT_MOMENTUM_SPREAD",
-    "ELECTRON_DENSITY", "COUNT"};
+    "ELECTRON_DENSITY", "COUNT", "N_H", "N_V"};
 std::vector<string> FRICTION_FORCE_FORMULA = {"PARKHOMCHUK", "NONMAG_DERBENEV", "NONMAG_MESHKOV", "NONMAG_NUM1D",
-    "NONMAG_NUM3D", "MESHKOV", "DSM"};
+    "NONMAG_NUM3D", "MESHKOV", "DSM", "NONMAG_NUM3D_MB"};
 std::vector<string> SIMULATION_ARGS = {"TIME", "STEP_NUMBER", "SAMPLE_NUMBER", "IBS", "E_COOL", "OUTPUT_INTERVAL",
     "SAVE_PARTICLE_INTERVAL", "OUTPUT_FILE", "MODEL", "REF_BET_X", "REF_BET_Y", "REF_ALF_X", "REF_ALF_Y",
     "REF_DISP_X", "REF_DISP_Y", "REF_DISP_DX", "REF_DISP_DY", "FIXED_BUNCH_LENGTH", "RESET_TIME", "OVERWRITE",
@@ -903,6 +903,38 @@ void create_force_solver(Set_ptrs &ptrs, ForceFormula formula, std::unique_ptr<F
             if(ptrs.ecool_ptr->smooth_factor!=2) {
                 p->set_smooth_factor(ptrs.ecool_ptr->smooth_factor);
             }
+            break;
+        }
+        case ForceFormula::NONMAG_NUM3D_MB: {
+            size_t limit = ptrs.ecool_ptr->limit;
+            double esprel = ptrs.ecool_ptr->esprel;
+            double espabs = ptrs.ecool_ptr->espabs;
+            assert((esprel>=0&&espabs>=0&&"Wrong value for the parameter ESPREL or ESPABS in section_ecool!"));
+            if(ptrs.ecool_ptr->use_gsl) {
+                force_solver.reset(new ForceNonMagNumeric3DBlaskiewicz(limit));
+                ForceNonMagNumeric3DBlaskiewicz* p = dynamic_cast<ForceNonMagNumeric3DBlaskiewicz*>(force_solver.get());
+                p->set_gsl(true);
+                if(esprel>0) p->set_esprel(esprel);
+                if(espabs>0) p->set_espabs(esprel);
+                if(ptrs.ecool_ptr->use_mean_rho_min) p->set_mean_rho_min(true);
+                else p->set_mean_rho_min(false);
+            }
+            else {
+                force_solver.reset(new ForceNonMagNumeric3DBlaskiewicz());
+                ForceNonMagNumeric3DBlaskiewicz* p = dynamic_cast<ForceNonMagNumeric3DBlaskiewicz*>(force_solver.get());
+                p->set_gsl(false);
+                int n_h = ptrs.ecool_ptr->n_tr;
+                int n_l = ptrs.ecool_ptr->n_l;
+                int n_v = ptrs.ecool_ptr->n_phi;
+                if(n_h>0 || n_l>0 || n_v>0) {
+                    assert(n_h>0&&n_l>0&&n_v>0&&"Wrong value for the parameters N_TR, N_L & N_PHI in section_ecool");
+                    p->set_grid(n_h, n_v, n_l);
+                }
+                if(ptrs.ecool_ptr->use_mean_rho_min) p->set_mean_rho_min(true);
+                else p->set_mean_rho_min(false);
+            }
+
+            smooth_rho_max(ptrs);
             break;
         }
         default: {
@@ -1807,6 +1839,7 @@ void set_ecool(string &str, Set_ecool *ecool_args){
         else if (val=="NONMAG_MESHKOV") ecool_args->force = ForceFormula::NONMAG_MESHKOV;
         else if (val=="NONMAG_NUM1D") ecool_args->force = ForceFormula::NONMAG_NUM1D;
         else if (val=="NONMAG_NUM3D") ecool_args->force = ForceFormula::NONMAG_NUM3D;
+        else if (val=="NONMAG_NUM3D_MB") ecool_args->force = ForceFormula::NONMAG_NUM3D_MB;
         else if (val=="MESHKOV") ecool_args->force = ForceFormula::MESHKOV;
         else if (val=="DSM") ecool_args->force = ForceFormula::DSM;
         else assert(false&&"Friction force formula NOT exists!");
@@ -1817,6 +1850,7 @@ void set_ecool(string &str, Set_ecool *ecool_args){
         else if (val=="NONMAG_MESHKOV") ecool_args->force_l = ForceFormula::NONMAG_MESHKOV;
         else if (val=="NONMAG_NUM1D") ecool_args->force_l = ForceFormula::NONMAG_NUM1D;
         else if (val=="NONMAG_NUM3D") ecool_args->force_l = ForceFormula::NONMAG_NUM3D;
+        else if (val=="NONMAG_NUM3D_MB") ecool_args->force_l = ForceFormula::NONMAG_NUM3D_MB;
         else if (val=="MESHKOV") ecool_args->force_l = ForceFormula::MESHKOV;
         else if (val=="DSM") ecool_args->force_l = ForceFormula::DSM;
         else assert(false&&"Friction force formula NOT exists!");
@@ -1900,10 +1934,10 @@ void set_ecool(string &str, Set_ecool *ecool_args){
             else if (var == "ESPREL") {
                 ecool_args->esprel = std::stod(val);
             }
-            else if (var == "N_TR") {
+            else if (var == "N_TR" || var == "N_H") {
                 ecool_args->n_tr = std::stoi(val);
             }
-            else if (var == "N_PHI") {
+            else if (var == "N_PHI" || var == "N_V") {
                 ecool_args->n_phi = std::stoi(val);
             }
             else if (var == "N_L") {
@@ -1958,13 +1992,13 @@ void set_ecool(string &str, Set_ecool *ecool_args){
             else if(var == "ESPREL") {
                 ecool_args->esprel = static_cast<double>(mupEval(math_parser));
             }
-            else if(var == "N_TR") {
+            else if(var == "N_TR" || var == "N_H") {
                 ecool_args->n_tr = static_cast<int>(mupEval(math_parser));
             }
             else if(var == "N_L") {
                 ecool_args->n_l = static_cast<int>(mupEval(math_parser));
             }
-            else if(var == "N_PHI") {
+            else if(var == "N_PHI" || var == "N_V") {
                 ecool_args->n_phi = static_cast<int>(mupEval(math_parser));
             }
             else if(var == "N_STEP") {

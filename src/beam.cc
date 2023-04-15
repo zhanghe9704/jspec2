@@ -494,13 +494,13 @@ void GaussianBunchDisp::velocity_shift(vector<double>& x, vector<double>& y, vec
     for(int i=0; i<n; ++i){
         v_avg_l.at(i) = k*x.at(i);
     }
-    if(iszero(twiss_.alf_x)) {
+    if(!iszero(twiss_.alf_x)) {
         if(v_avg_x.size()<n) v_avg_x.resize(n);
         for(int i=0; i<n; ++i) {
             v_avg_x.at(i) = kx*x.at(i);
         }
     }
-    if(iszero(twiss_.alf_y))  {
+    if(!iszero(twiss_.alf_y))  {
         if(v_avg_y.size()<n) v_avg_y.resize(n);
         for(int i=0; i<n; ++i) {
             v_avg_y.at(i) = ky*y.at(i);
