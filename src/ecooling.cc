@@ -44,14 +44,16 @@ void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
 //        v_long[i] /= (1-(v_long[i]+v)*ion.beta()/k_c);    //Convert to beam frame, when v_long<<v, canceled with the above line.
         v_long[i] = dp_p[i]*v;
-        if(symmetry_vtr) {
+    }
+    if(symmetry_vtr) {
+        for(int i=0; i<n_sample; ++i)
             v_tr[i] = sqrt(xp[i]*xp[i]+yp[i]*yp[i])*v;
-        }
-        else {
+    }
+    else {
+        for(int i=0; i<n_sample; ++i){
             v_tr[i] = xp[i]*v;
             v_y[i] = yp[i]*v;
         }
-
     }
 }
 
@@ -81,8 +83,10 @@ void ECoolRate::beam_frame(int n_sample, double gamma_e) {
     for(int i=0; i<n_sample; ++i){
         v_tr[i] *= gamma_e;
         ne[i] *= gamma_e_inv;
-        if (!symmetry_vtr) v_y[i] *= gamma_e;
     }
+    if (!symmetry_vtr)
+        for(int i=0; i<n_sample; ++i)
+            v_y[i] *= gamma_e;
     t_cooler_ /= gamma_e;
 }
 
@@ -276,6 +280,9 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     symmetry_vtr = ebeam.symmetry_vtr();
     if(n_sample>scratch_size) init_scratch(n_sample);
 
+
+//    symmetry_vtr = true;
+
 //    electron_density(ion_sample,ebeam);
     if(ebeam.disp() && ebeam.shape()!=Shape::BLASKIEWICZ) {
         electron_density(ion_sample,*ebeam.samples);
@@ -303,6 +310,8 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
 
     //Transfer into e- beam frame
     beam_frame(n_sample, ebeam.gamma());
+
+
     //Calculate friction force
     if(ebeam.disp() && ebeam.shape()!=Shape::BLASKIEWICZ) {
 //        ParticleBunch* ptr = dynamic_cast<ParticleBunch*>(ebeam.samples.get());

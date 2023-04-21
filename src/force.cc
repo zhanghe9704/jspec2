@@ -563,7 +563,15 @@ void ForceNonMagNumeric3D::pre_int(double sgm_vtr, double sgm_vl) {
     vl.at(0) = -3*sgm_vl + d_vl/2;
     for(int i=1; i<n_l; ++i) vl.at(i) = vl.at(i-1) + d_vl;
 
-    d = d_phi*d_vtr*d_vl;
+//    d = d_phi*d_vtr*d_vl;
+
+    //vtr_sin is only used when electron dispersion exists and alpha != 0.
+    vtr_sin.resize(n_phi,vector<double>(n_tr));
+    for(int i=0; i<n_phi; ++i) {
+        for(int j=0; j<n_tr; ++j) {
+            vtr_sin.at(i).at(j) = -vtr.at(j)*sin(phi.at(i));
+        }
+    }
 
     for(int i=0; i<n_tr; ++i) hlf_v2tr.at(i) = vtr.at(i)*vtr.at(i);
     for(int i=0; i<n_l; ++i) hlf_v2l.at(i) = -vl.at(i)*vl.at(i)/2;
@@ -609,6 +617,8 @@ vector<vector<double>> ForceNonMagNumeric3D::vtr_cos;
 vector<double> ForceNonMagNumeric3D::vl;
 vector<double> ForceNonMagNumeric3D::vtr;
 vector<vector<double>> ForceNonMagNumeric3D::v2tr_sin2;
+vector<vector<double>> ForceNonMagNumeric3D::vtr_sin;
+vector<vector<vector<double>>> ForceNonMagNumeric3D::exp_v;
 #endif // _OPENMP
 void ForceNonMagNumeric3D::force_grid(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
@@ -1405,4 +1415,209 @@ void ForceNonMagNumeric3DBlaskiewicz::friction_force(int charge_number, int ion_
     }
     }
     fin();
+}
+
+void ForceNonMagNumeric3D::friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
+                                vector<double>& v_l, vector<double>& density_e, EBeam& ebeam, Cooler& cooler,
+                                vector<double>& force_h, vector<double>& force_v, vector<double>& force_l) {
+    init(ebeam);
+    double f_const = this->f_const(charge_number);
+    double rho_min_const = this->rho_min_const(charge_number);
+    auto tpr = ebeam.temperature();
+
+    vector<double>& ve_rms_l = ebeam.get_v(EBeamV::V_RMS_L);
+    vector<double>& ve_rms_h = ebeam.get_v(EBeamV::V_RMS_TR);
+    vector<double>& ve_rms_v = ebeam.get_v(EBeamV::V_RMS_V);
+    vector<double>& ve_rms_rho = ebeam.get_v(EBeamV::V_RMS_RHO);
+    vector<double>& ve_rms_krho = ebeam.get_v(EBeamV::V_RMS_KRHO);
+
+    force_h.resize(ion_number);
+    force_v.resize(ion_number);
+    force_l.resize(ion_number);
+
+    switch(tpr) {
+    case Temperature::CONST: {
+        double ve_l = ve_rms_l.at(0);
+        double ve_h = ve_rms_h.at(0);
+        double ve_v = ve_rms_v.at(0);
+        double ve_rho = ve_rms_rho.at(0);
+        double ve_krho = ve_rms_krho.at(0);
+        double ve_tr = sqrt(ve_h*ve_h+ve_v*ve_v);
+//        double ve2 = ve_l*ve_l + ve_tr*ve_tr;
+
+        #ifdef _OPENMP
+            #pragma omp parallel for
+        #endif // _OPENMP
+        for(int i=0; i<ion_number; ++i) {
+            if(iszero(density_e.at(i))) {
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
+                continue;
+            }
+            double v2 = v_h[i]*v_h[i]+v_v[i]*v_v[i]+v_l[i]*v_l[i];
+            double v = sqrt(v2);
+            if(v2>0) {
+                 force(v, v_h[i], v_v[i], v_l[i], v2, ve_h, ve_v, ve_l, ve_rho, ve_krho, f_const, rho_min_const,  charge_number,
+                       density_e.at(i), force_h[i], force_v[i], force_l[i]);
+            }
+            else {
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
+            }
+        }
+        break;
+    }
+    case Temperature::VARY: {
+        #ifdef _OPENMP
+            #pragma omp parallel for
+        #endif // _OPENMP
+        for(int i=0; i<ion_number; ++i) {
+            if(iszero(density_e.at(i))) {
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
+                continue;
+            }
+            double v2 = v_h[i]*v_h[i]+v_v[i]*v_v[i]+v_l[i]*v_l[i];
+            double v = sqrt(v2);
+            if(v2>0) {
+                double ve_l = ve_rms_l.at(i);
+                double ve_h = ve_rms_h.at(i);
+                double ve_v = ve_rms_v.at(i);
+                double ve_rho = ve_rms_rho.at(i);
+                double ve_krho = ve_rms_krho.at(i);
+                double ve_tr = sqrt(ve_h*ve_h+ve_v*ve_v);
+//                double ve2 = ve_l*ve_l + ve_tr*ve_tr;
+                force(v, v_h[i], v_v[i], v_l[i], v2, ve_h, ve_v, ve_l, ve_rho, ve_krho, f_const, rho_min_const,  charge_number,
+                       density_e.at(i), force_h[i], force_v[i], force_l[i]);
+//                if(std::isnan(force_tr[i])) {
+//                    std::cout<<i<<' '<<ve_l<<' '<<ve_tr<<' '<<ve2<<' '<<density_e.at(i)<<std::endl;
+//                }
+            }
+            else {
+                force_h[i] = 0;
+                force_v[i] = 0;
+                force_l[i] = 0;
+            }
+        }
+        break;
+    }
+    default: {
+        break;
+    }
+    }
+    fin();
+}
+
+void ForceNonMagNumeric3D::force(double v, double v_h, double v_v, double v_l, double v2, double ve_h, double ve_v, double ve_l, double rho,
+               double krho, double f_const, double rho_min_const, int charge_number, double ne, double& force_h,
+               double& force_v, double& force_l){
+//    if(use_gsl) {
+//        force_gsl(v, v_tr, v_l, v2, ve_tr, ve_l, ve2, f_const, rho_min_const, charge_number, ne, force_tr, force_l);
+//    }
+//    else {
+        force_grid(v, v_h, v_v, v_l, v2, ve_h, ve_v, ve_l, rho, krho, f_const, rho_min_const, charge_number, ne, force_h, force_v, force_l);
+//    }
+}
+
+void ForceNonMagNumeric3D::force_grid(double v, double v_h, double v_v, double v_l, double v2, double ve_h, double ve_v, double ve_l, double rho,
+                    double krho,double f_const, double rho_min_const, int charge_number, double ne,double& force_h,
+                    double& force_v, double& force_l){
+
+//    rho = 0; krho = 1;
+    double ve_tr = sqrt(ve_h*ve_h + ve_v*ve_v);
+    if(first_run) {
+        pre_int(ve_tr, ve_l);
+//        calc_exp_vtr(ve_tr, ve_l);
+        calc_exp_v(ve_h, ve_v, ve_l, rho, krho);
+        first_run = false;
+    }
+    else if(!const_tmpr) {
+//        calc_exp_vtr(ve_tr, ve_l);
+        calc_exp_v(ve_h, ve_v, ve_l, rho, krho);
+    }
+    double f_h = 0;
+    double f_v = 0;
+    double f_l = 0;
+    double ve2 = ve_tr*ve_tr+ve_l*ve_l;
+
+    double rho_max = this->rho_max(charge_number, v2, ve2, ne);
+    if(use_mean_rho_min) {
+        mean_rho_min = this->rho_min_const(charge_number)/(v2+ve2);
+        mean_lc = rho_max>mean_rho_min?log(rho_max/mean_rho_min):0;
+    }
+    for(int i=0; i<n_tr; ++i) {
+        for(int j=0; j<n_l; ++j) {
+            for(int k=0; k<n_phi; ++k) {
+                double sub_vl = v_l + vl.at(j);
+                double sub_vh = v_h + vtr_cos.at(k).at(i);
+                double sub_vv = v_v + vtr_sin.at(k).at(i);
+                double f_bot = sub_vl*sub_vl + sub_vh*sub_vh + sub_vv*sub_vv;
+                double f_inv_bot = 1/f_bot;
+                double rho_min = this->rho_min_const(charge_number)*f_inv_bot;
+                double lc = rho_max>rho_min?log(rho_max/rho_min):0;
+//                double f = exp_vtr.at(j).at(i)*lc*(f_inv_bot*sqrt(f_inv_bot));
+                double f = exp_v.at(j).at(i).at(k)*lc*(f_inv_bot*sqrt(f_inv_bot));
+                f_h += sub_vh*f;
+                f_v += sub_vv*f;
+                f_l += sub_vl*f;
+
+                sub_vv = v_v - vtr_sin.at(k).at(i);
+                f_bot = sub_vl*sub_vl + sub_vh*sub_vh + sub_vv*sub_vv;
+                f_inv_bot = 1/f_bot;
+                rho_min = this->rho_min_const(charge_number)*f_inv_bot;
+                lc = rho_max>rho_min?log(rho_max/rho_min):0;
+//                f = exp_vtr.at(j).at(i)*lc*(f_inv_bot*sqrt(f_inv_bot));
+                f = exp_v.at(j).at(i).at(k+n_phi)*lc*(f_inv_bot*sqrt(f_inv_bot));
+                f_h += sub_vh*f;
+                f_v += sub_vv*f;
+                f_l += sub_vl*f;
+
+
+                double sub_vv_2 = v_v - vtr_sin.at(k).at(i);
+            }
+        }
+    }
+
+    double ff = f_const*ne*f_inv_norm;
+    force_h = ff*f_h;
+    force_v = ff*f_v;
+    force_l = ff*f_l;
+}
+
+void ForceNonMagNumeric3D::calc_exp_v(double sgm_vh, double sgm_vv, double sgm_vl, double rho, double krho) {
+    exp_v.resize(n_l, vector<vector<double>>(n_tr, vector<double>(n_phi*2)));
+    double inv_ve2_h = -1/(2*sgm_vh*sgm_vh);
+    double inv_ve2_l = -1/(2*sgm_vl*sgm_vl);
+    double inv_ve2_v = -1/(2*sgm_vv*sgm_vv);
+    double inv_vhvl = rho/(sgm_vh*sgm_vl);
+//    double bottom = 2*k_pi*sqrt(2*k_pi)*sgm_vh*sgm_vv*sgm_vl/krho;
+
+
+    for(int i=0; i<n_l; ++i) {
+        for(int j=0; j<n_tr; ++j) {
+            for(int k=0; k<n_phi; ++k) {
+                exp_v.at(i).at(j).at(k) = exp((inv_ve2_h*v2tr_sin2.at(k).at(j) + inv_ve2_l*vl.at(i)*vl.at(i)
+                                            + inv_vhvl*vtr_sin.at(k).at(j)*vl.at(i))*krho
+                                            + inv_ve2_v*vtr_cos.at(k).at(j)*vtr_cos.at(k).at(j))*vtr.at(j);
+                exp_v.at(i).at(j).at(k+n_phi) = exp((inv_ve2_h*v2tr_sin2.at(k).at(j) + inv_ve2_l*vl.at(i)*vl.at(i)
+                                            - inv_vhvl*vtr_sin.at(k).at(j)*vl.at(i))*krho
+                                            + inv_ve2_v*vtr_cos.at(k).at(j)*vtr_cos.at(k).at(j))*vtr.at(j);
+
+//                exp_v.at(i).at(j).at(k) = exp(inv_ve2_h*vh.at(k)*vh.at(k) + inv_ve2_l*vl.at(i)*vl.at(i)
+//                                             + inv_ve2_v*vv.at(j)*vv.at(j));
+
+//exp_vtr.at(i).at(j) = exp(hlf_v2tr.at(j)*inv_ve2_tr + hlf_v2l.at(i)*inv_ve2_l)*vtr.at(j);
+            }
+        }
+    }
+    f_inv_norm = 0;
+    for(auto&vv:exp_v)
+        for(auto&v:vv)
+            for(auto& e:v)
+                f_inv_norm+=e;
+//    f_inv_norm = bottom/f_inv_norm;
+    f_inv_norm = 1/f_inv_norm;
 }

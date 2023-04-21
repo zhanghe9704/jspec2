@@ -194,6 +194,7 @@ public:
     void set_twiss(double dx, double dy=0, double betx=0, double bety=0, double alfx=0, double alfy=0, double ddx = 0,
                    double ddy = 0);
     Twiss& twiss(){return twiss_;}
+    void set_symmetry_vtr(bool b){symmetry_vtr_ = b;}
     bool symmetry_vtr(){return symmetry_vtr_;}
 
 //    EBeam& get_samples(){return *samples;}

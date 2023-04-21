@@ -168,10 +168,13 @@ protected:
     static vector<double> hlf_v2tr;
     static vector<double> hlf_v2l;
     static vector<vector<double>> vtr_cos;
+
     static vector<double> vl;
     static vector<double> vtr;
     static vector<vector<double>> v2tr_sin2;
-    #pragma omp threadprivate(exp_vtr, hlf_v2tr, hlf_v2l, vtr_cos, vl, vtr, v2tr_sin2, first_run)
+    static vector<vector<double>> vtr_sin;
+    static vector<vector<vector<double>>> exp_v;
+    #pragma omp threadprivate(exp_vtr, hlf_v2tr, hlf_v2l, vtr_cos, vl, vtr, v2tr_sin2, vtr_sin, exp_v, first_run)
     #else
     double mean_rho_min = 0;
     double mean_lc = 0;
@@ -182,6 +185,8 @@ protected:
     vector<double> vl;
     vector<double> vtr;
     vector<vector<double>> v2tr_sin2;
+    vector<vector<double>> vtr_sin;
+    vector<vector<vector<double>>> exp_v;
     bool first_run = true;
     #endif // _OPENMP
     bool const_tmpr = true;
@@ -194,6 +199,7 @@ protected:
 
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);
+    void calc_exp_v(double sgm_vh, double sgm_vv, double sgm_vl, double rho, double krho);
 
     void init(EBeam& ebeam);
     double inner_integrand(double phi, void* params);
@@ -210,6 +216,14 @@ protected:
     void force(double v, double v_tr, double v_l, double v2, double ve_tr, double ve_l, double ve2,
                                double f_const, double rho_min_const, int charge_number, double ne,
                                double& force_tr, double& force_l);
+
+    void force(double v, double v_h, double v_v, double v_l, double v2, double ve_h, double ve_v, double ve_l, double rho,
+               double krho, double f_const, double rho_min_const, int charge_number, double ne, double& force_h,
+               double& force_v, double& force_l) ;
+
+    void force_grid(double v, double v_h, double v_v, double v_l, double v2, double ve_h, double ve_v, double ve_l, double rho,
+                    double krho,double f_const, double rho_min_const, int charge_number, double ne,double& force_h,
+                    double& force_v, double& force_l);
 public:
     void set_espabs(double x){espabs = x;}
     void set_esprel(double x){esprel = x;}
@@ -218,6 +232,9 @@ public:
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run = true;}
     ForceNonMagNumeric3D(int n=100);
     ~ForceNonMagNumeric3D();
+    void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
+                                vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
+                                vector<double>& force_h, vector<double>& force_v, vector<double>& force_l);
 };
 
 //gsl function wrapper for member functions in class.

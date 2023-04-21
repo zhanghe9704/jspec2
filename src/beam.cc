@@ -474,8 +474,8 @@ void GaussianBunchDisp::initialize(double dx) {
     double c = 0;
     if(!iszero(twiss_.alf_x)) {
         c = twiss_.alf_x*twiss_.alf_x*twiss_.disp_x*twiss_.disp_x*dp_p*dp_p/sigma_x2_new;
-        double tpr_h_new = tpr_tr_org*(1+c)/2;
-        double tpr_v_new = tpr_tr_org/2;
+        double tpr_h_new = tpr_tr_org*(1+c);
+        double tpr_v_new = tpr_tr_org;
         set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
         v_rms_krho.resize(1);
         v_rms_rho.resize(1);
