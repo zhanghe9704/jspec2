@@ -80,7 +80,7 @@ public:
 };
 
 enum class Shape {UNIFORM_CYLINDER, GAUSSIAN_BUNCH, UNIFORM_BUNCH, GAUSSIAN_CYLINDER, ELLIPTIC_UNIFORM_BUNCH,
-    UNIFORM_HOLLOW, UNIFORM_HOLLOW_BUNCH, PARTICLE_BUNCH, BLASKIEWICZ};
+    UNIFORM_HOLLOW, UNIFORM_HOLLOW_BUNCH, PARTICLE_BUNCH, GAUSSIAN_BUNCH_DISP};
 
 enum class Velocity {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
 enum class Temperature {CONST, USER_DEFINE, SPACE_CHARGE, VARY, VARY_X, VARY_Y, VARY_Z}  ;
@@ -196,6 +196,7 @@ public:
     Twiss& twiss(){return twiss_;}
     void set_symmetry_vtr(bool b){symmetry_vtr_ = b;}
     bool symmetry_vtr(){return symmetry_vtr_;}
+    void twiss_drift(double l);
 
 //    EBeam& get_samples(){return *samples;}
 };
@@ -338,7 +339,7 @@ class GaussianBunchDisp : public GaussianBunch {
     double kx = 0; //Coefficient to calculate velocity shift in horizontal direction.
     double ky = 0; //Coefficient to calculate velocity shift in vertical direction.
  public:
-    Shape shape() const {return Shape::BLASKIEWICZ;}
+    Shape shape() const {return Shape::GAUSSIAN_BUNCH_DISP;}
     void initialize(double dx);
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,

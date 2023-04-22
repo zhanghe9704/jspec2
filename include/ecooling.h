@@ -27,6 +27,7 @@ protected:
     bool dual_force_solver = false;
     bool save_force = false;
     bool cooling_count = false;
+    int n_piece = 1;
     vector<double> ne;
     vector<double> xp_bet, yp_bet, xp, yp, dp_p, x, y, x_bet, y_bet;
     vector<double> v_tr, v_long, v_y; //For cooling with e- disp, use v_tr for horizontal v, v_y for vertical v.
@@ -44,6 +45,10 @@ protected:
     void save_force_sdds_head(std::ofstream& of, int n);
     FrictionForceSolver* force_solver_l;
     bool symmetry_vtr = true;    //Cylindrical symmetry in transverse direction.
+    void ecool_ions(FrictionForceSolver &force_solver, Beam &ion, Ions &ion_sample, Cooler &cooler, EBeam &ebeam,
+                Ring &ring);
+    void ions_drift(int n, double l);
+    void ions_copy(Ions& ion_sample);
 public:
     void set_save_force(bool b){save_force = b;}
     void set_dual_force_solver(bool b){dual_force_solver = b;}

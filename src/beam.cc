@@ -131,6 +131,20 @@ void EBeam::set_v_avg(double v_avg_tx, double v_avg_ty, double v_avg_long) {
     v_avg_l.at(0) = v_avg_long;
 }
 
+void EBeam::twiss_drift(double l) {
+    double alf = twiss_.alf_x;
+    double bet = twiss_.bet_x;
+    double gamma = (1 + alf*alf)/bet;
+    twiss_.alf_x = alf - l*l*gamma;
+    twiss_.bet_x = bet - 2*l*alf + l*l*gamma;
+
+    alf = twiss_.alf_y;
+    bet = twiss_.bet_y;
+    gamma = (1 + alf*alf)/bet;
+    twiss_.alf_y = alf - l*l*gamma;
+    twiss_.bet_y = bet - 2*l*alf + l*l*gamma;
+}
+
 void GaussianBunch::set_angles(double sigma_xp, double sigma_yp, double sigma_dpp) {
     sigma_xp_ = sigma_xp;
     sigma_yp_ = sigma_yp;

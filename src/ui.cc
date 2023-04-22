@@ -39,7 +39,7 @@ std::vector<string> RUN_COMMANDS = {"CREATE_ION_BEAM", "CREATE_RING", "CREATE_E_
 std::vector<string> RING_ARGS = {"LATTICE", "QX", "QY", "QS", "GAMMA_TR", "RF_V", "RF_H", "RF_PHI"};
 std::vector<string> IBS_ARGS = {"NU","NV","NZ","LOG_C","COUPLING","MODEL","IBS_BY_ELEMENT","FACTOR"};
 std::vector<string> COOLER_ARGS = {"LENGTH", "SECTION_NUMBER", "MAGNETIC_FIELD", "BET_X", "BET_Y", "DISP_X", "DISP_Y",
-    "ALPHA_X", "ALPHA_Y", "DISP_DX", "DISP_DY","PIPE_RADIUS"};
+    "ALPHA_X", "ALPHA_Y", "DISP_DX", "DISP_DY","PIPE_RADIUS", "BET_MX", "BET_MY", "BET_MX_E", "BET_MY_E", "PIECE_NUMBER"};
 std::vector<string> E_BEAM_SHAPE_TYPES = {"DC_UNIFORM", "BUNCHED_GAUSSIAN", "BUNCHED_UNIFORM", "BUNCHED_UNIFORM_ELLIPTIC",
     "DC_UNIFORM_HOLLOW", "BUNCHED_UNIFORM_HOLLOW", "BUNCHED_USER_DEFINED", "BUNCHED_GAUSSIAN_DISP"};
 std::vector<string> E_BEAM_ARGS = {"GAMMA", "TMP_TR", "TMP_L", "SHAPE", "RADIUS", "CURRENT", "SIGMA_X", "SIGMA_Y",
@@ -726,10 +726,18 @@ void create_cooler(Set_ptrs &ptrs) {
     double alpha_y = ptrs.cooler_ptr->alpha_y;
     double disp_dx = ptrs.cooler_ptr->disp_dx;
     double disp_dy = ptrs.cooler_ptr->disp_dy;
-    assert(length>0 && section_number>0 && bet_x>0 && bet_y>0 && "WRONG PARAMETER VALUE FOR COOLER!");
+    double bet_mx = ptrs.cooler_ptr->bet_mx;
+    double bet_my = ptrs.cooler_ptr->bet_my;
+    double bet_mx_e = ptrs.cooler_ptr->bet_mx_e;
+    double bet_my_e = ptrs.cooler_ptr->bet_my_e;
+    int n_piece = ptrs.cooler_ptr->n_piece;
+    assert(length>0 && section_number>0 &&((bet_x>0 && bet_y>0) || (n_piece>1 && bet_mx>0 && bet_my>0)) && "WRONG PARAMETER VALUE FOR COOLER!");
     ptrs.cooler.reset(new Cooler(length, section_number, magnetic_field, bet_x, bet_y, disp_x, disp_y, alpha_x, alpha_y,
                                  disp_dx, disp_dy));
     if(ptrs.cooler_ptr->pipe_radius>0) ptrs.cooler->set_pipe_radius(ptrs.cooler_ptr->pipe_radius);
+    if(n_piece>1) ptrs.cooler->set_piece_number(n_piece);
+    if(bet_mx>0 && bet_my>0) ptrs.cooler->set_middle_beta(bet_mx, bet_my);
+    if(bet_mx_e>0 && bet_my_e>0) ptrs.cooler->set_middle_beta_e(bet_mx_e, bet_my_e);
     std::cout<<"Cooler created!"<<std::endl;
 }
 
@@ -1407,6 +1415,21 @@ void define_cooler(std::string &str, Set_cooler *cooler_args) {
         else if (var == "PIPE_RADIUS") {
             cooler_args->pipe_radius = std::stod(val);
         }
+        else if (var == "PIECE_NUMBER") {
+            cooler_args->n_piece = std::stoi(val);
+        }
+        else if (var == "BET_MX") {
+            cooler_args->bet_mx = std::stod(val);
+        }
+        else if (var == "BET_MY") {
+            cooler_args->bet_my = std::stod(val);
+        }
+        else if (var == "BET_MX_E") {
+            cooler_args->bet_mx_e = std::stod(val);
+        }
+        else if (var == "BET_MY_E") {
+            cooler_args->bet_my_e = std::stod(val);
+        }
         else {
             assert(false&&"Wrong arguments in section_cooler!");
         }
@@ -1448,6 +1471,21 @@ void define_cooler(std::string &str, Set_cooler *cooler_args) {
         }
         else if (var == "PIPE_RADIUS") {
             cooler_args->pipe_radius = mupEval(math_parser);
+        }
+        else if (var == "PIECE_NUMBER") {
+            cooler_args->n_piece = static_cast<int>(mupEval(math_parser));
+        }
+        else if (var == "BET_MX") {
+            cooler_args->bet_mx = mupEval(math_parser);
+        }
+        else if (var == "BET_MY") {
+            cooler_args->bet_my = mupEval(math_parser);
+        }
+        else if (var == "BET_MX_E") {
+            cooler_args->bet_mx_e = mupEval(math_parser);
+        }
+        else if (var == "BET_MY_E") {
+            cooler_args->bet_my_e = mupEval(math_parser);
         }
         else {
             assert(false&&"Wrong arguments in section_cooler!");
