@@ -246,6 +246,8 @@ void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
     vector<double>& iyp = n_piece==1?ion_sample.cdnt(Phase::YP):yp;
     vector<double>& idp_p = n_piece==1?ion_sample.cdnt(Phase::DP_P):dp_p;
 
+    t_cooler_ /= n_piece;
+
     #ifdef _OPENMP
         #pragma omp parallel for
     #endif // _OPENMP
@@ -261,6 +263,8 @@ void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
             dp_p[i] = idp_p[i];
         }
     }
+
+    t_cooler_ *= n_piece;
 }
 
 void ECoolRate::adjust_rate(Beam &ion, EBeam &ebeam, initializer_list<double*> func) {
@@ -302,7 +306,7 @@ void ECoolRate::ecool_ions(FrictionForceSolver &force_solver, Beam &ion, Ions &i
 
 
     //Time through the cooler
-    t_cooler_ = cooler.length()/(ion.beta()*k_c*n_piece);
+    t_cooler_ = cooler.length()/(ion.beta()*k_c);
 
     //Transfer into e- beam frame
     beam_frame(n_sample, ebeam.gamma());
