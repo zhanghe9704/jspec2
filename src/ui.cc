@@ -573,7 +573,7 @@ void create_e_beam(Set_ptrs &ptrs) {
     if(!iszero(ptrs.e_beam_ptr->cv_l)) ptrs.e_beam->set_cv_l(ptrs.e_beam_ptr->cv_l);
     if(!iszero(dx) || !iszero(dy)) {
         ptrs.e_beam->set_disp(dx,dy);
-        ptrs.e_beam->set_twiss(dx, dy, betx, bety, alfx, alfy, ddx, ddy);
+//        ptrs.e_beam->set_twiss(dx, dy, betx, bety, alfx, alfy, ddx, ddy);
         if (shape == "BUNCHED_GAUSSIAN_DISP") {
              GaussianBunchDisp* ptr = dynamic_cast<GaussianBunchDisp*>(ptrs.e_beam.get());
              ptr->initialize(dx);
@@ -731,11 +731,11 @@ void create_cooler(Set_ptrs &ptrs) {
     double bet_mx_e = ptrs.cooler_ptr->bet_mx_e;
     double bet_my_e = ptrs.cooler_ptr->bet_my_e;
     int n_piece = ptrs.cooler_ptr->n_piece;
-    assert(length>0 && section_number>0 &&((bet_x>0 && bet_y>0) || (n_piece>1 && bet_mx>0 && bet_my>0)) && "WRONG PARAMETER VALUE FOR COOLER!");
+    assert(length>0 && section_number>0 &&((bet_x>0 && bet_y>0) || (n_piece>0 && bet_mx>0 && bet_my>0)) && "WRONG PARAMETER VALUE FOR COOLER!");
     ptrs.cooler.reset(new Cooler(length, section_number, magnetic_field, bet_x, bet_y, disp_x, disp_y, alpha_x, alpha_y,
                                  disp_dx, disp_dy));
     if(ptrs.cooler_ptr->pipe_radius>0) ptrs.cooler->set_pipe_radius(ptrs.cooler_ptr->pipe_radius);
-    if(n_piece>1) ptrs.cooler->set_piece_number(n_piece);
+    if(n_piece>0) ptrs.cooler->set_piece_number(n_piece);
     if(bet_mx>0 && bet_my>0) ptrs.cooler->set_middle_beta(bet_mx, bet_my);
     if(bet_mx_e>0 && bet_my_e>0) ptrs.cooler->set_middle_beta_e(bet_mx_e, bet_my_e);
     std::cout<<"Cooler created!"<<std::endl;

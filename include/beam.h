@@ -123,10 +123,12 @@ protected:
     void create_particle_velocity();
     void adjust_particle_location();
     bool disp_ = false;
-    double dx_ = 0;
-    double dy_ = 0;
+//    double dx_ = 0;
+//    double dy_ = 0;
     Twiss twiss_;
     bool symmetry_vtr_ = true;  //Axial symmetry of transverse velocity. It's broken when dispersion exists and alpha != 0.
+    double emit_x_;
+    double emit_y_;
 public:
     virtual ~EBeam(){};
     Velocity velocity() const {return velocity_;}
@@ -156,7 +158,7 @@ public:
     void center(double &cx, double &cy, double &cz) const {cx = center_[0]; cy = center_[1]; cz = center_[2];}
     double center(int i) const { if (i<3&&i>-1) return center_[i]; else perror("Error index for electron beam center!"); return 1.0;}
     void set_center(int i, double x){if(i<3&&i>-1) center_[i]=x; else perror("Error index for electron beam center!");}
-    void set_tpr(double tpr_tr, double trp_long);
+    virtual void set_tpr(double tpr_tr, double trp_long);
     void set_tpr(double tpr_h, double tpr_v,  double trp_long);
     void set_v_rms(double v_rms_tr, double v_rms_long);
     void set_v_rms(double v_rms_h, double v_rms_v,  double v_rms_long);
@@ -186,17 +188,21 @@ public:
     void multi_edge_field(Cooler& cooler, vector<double>&x, vector<double>& y, vector<double>&z,
                              vector<double>& field, int n, double cx, double cy, double cz);
     void create_samples(int n_sample = 2000000);
-    void remove_disp(){disp_ = false; dx_ = 0; dy_ = 0;}
-    void set_disp(double dx, double dy){dx_ = dx; dy_ = dy; disp_ = true;}
+    void remove_disp(){disp_ = false; twiss_.disp_x = 0; twiss_.disp_y = 0;}
+    void set_disp(double dx, double dy){twiss_.disp_x = dx; twiss_.disp_y = dy; disp_ = true;}
     bool disp(){return disp_;}
-    double dx(){return dx_;}
-    double dy(){return dy_;}
-    void set_twiss(double dx, double dy=0, double betx=0, double bety=0, double alfx=0, double alfy=0, double ddx = 0,
-                   double ddy = 0);
+    double dx(){return twiss_.disp_x;}
+    double dy(){return twiss_.disp_y;}
+//    void set_twiss(double dx, double dy=0, double betx=0, double bety=0, double alfx=0, double alfy=0, double ddx = 0,
+//                   double ddy = 0);
+    virtual void update_size(){};
+    void set_twiss(double betx, double bety, double alfx=0, double alfy=0) {twiss_.bet_x = betx; twiss_.bet_y = bety;
+                    twiss_.alf_x = alfx; twiss_.alf_y = alfy;}
     Twiss& twiss(){return twiss_;}
     void set_symmetry_vtr(bool b){symmetry_vtr_ = b;}
     bool symmetry_vtr(){return symmetry_vtr_;}
     void twiss_drift(double l);
+    virtual void updates(){};
 
 //    EBeam& get_samples(){return *samples;}
 };
@@ -325,6 +331,9 @@ class GaussianBunch: public EBeam{
     Shape shape() const {return Shape::GAUSSIAN_BUNCH;}
     double length() const {return 6*sigma_s_;}
     void set_angles(double sigma_xp, double sigma_yp, double sigma_dpp);
+    void update_size();
+    void updates(){update_size();}
+    void set_tpr(double tpr_tr, double tpr_long);
     GaussianBunch(double n_electron, double sigma_x, double sigma_y, double sigma_s):n_electron_(n_electron),
                 sigma_x_(sigma_x),sigma_y_(sigma_y),sigma_s_(sigma_s){};
 };
@@ -338,9 +347,12 @@ class GaussianBunchDisp : public GaussianBunch {
     double k = 0; //Coefficient to calculate velocity shift
     double kx = 0; //Coefficient to calculate velocity shift in horizontal direction.
     double ky = 0; //Coefficient to calculate velocity shift in vertical direction.
+    void initialize(int count, ...);
  public:
     Shape shape() const {return Shape::GAUSSIAN_BUNCH_DISP;}
+    void set_tpr(double tpr_tr, double tpr_long){GaussianBunch::set_tpr(tpr_tr, tpr_long);}
     void initialize(double dx);
+    void updates();
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
                 double cx, double cy, double cz);

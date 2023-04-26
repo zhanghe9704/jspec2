@@ -21,8 +21,8 @@ void ECoolRate::electron_density(Ions& ion_sample, EBeam &ebeam) {
     int n_sample = ion_sample.n_sample();
 //    vector<double>& x, y;
 
-    vector<double>& x = n_piece==1?ion_sample.cdnt(Phase::X):this->x;
-    vector<double>& y = n_piece==1?ion_sample.cdnt(Phase::Y):this->y;
+    vector<double>& x = n_piece==0?ion_sample.cdnt(Phase::X):this->x;
+    vector<double>& y = n_piece==0?ion_sample.cdnt(Phase::Y):this->y;
     vector<double>& ds = ion_sample.cdnt(Phase::DS);
 
     if(ebeam.p_shift()) {
@@ -40,9 +40,9 @@ void ECoolRate::electron_density(Ions& ion_sample, EBeam &ebeam) {
 
 void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
     double v = ion.beta()*k_c;
-    vector<double>& xp = n_piece==1?ion_sample.cdnt(Phase::XP):this->xp;
-    vector<double>& yp =  n_piece==1?ion_sample.cdnt(Phase::YP):this->yp;
-    vector<double>& dp_p =  n_piece==1?ion_sample.cdnt(Phase::DP_P):this->dp_p;
+    vector<double>& xp = n_piece==0?ion_sample.cdnt(Phase::XP):this->xp;
+    vector<double>& yp =  n_piece==0?ion_sample.cdnt(Phase::YP):this->yp;
+    vector<double>& dp_p =  n_piece==0?ion_sample.cdnt(Phase::DP_P):this->dp_p;
 
     for(int i=0; i<n_sample; ++i) {
 //        v_long[i] = dp_p[i]*v/(ion.gamma()*ion.gamma());  //Convert from dp/p to dv/v
@@ -228,8 +228,8 @@ void ECoolRate::lab_frame(int n_sample, double gamma_e) {
 void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
     if(!symmetry_vtr) return;
     double v0 = ion.beta()*k_c;
-    vector<double>& xp = n_piece==1?ion_sample.cdnt(Phase::XP):this->xp;
-    vector<double>& yp = n_piece==1?ion_sample.cdnt(Phase::YP):this->yp;
+    vector<double>& xp = n_piece==0?ion_sample.cdnt(Phase::XP):this->xp;
+    vector<double>& yp = n_piece==0?ion_sample.cdnt(Phase::YP):this->yp;
 
     #ifdef _OPENMP
         #pragma omp parallel for
@@ -242,11 +242,11 @@ void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
 
 void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
     double p0 = ion.p0_SI();
-    vector<double>& ixp = n_piece==1?ion_sample.cdnt(Phase::XP):xp;
-    vector<double>& iyp = n_piece==1?ion_sample.cdnt(Phase::YP):yp;
-    vector<double>& idp_p = n_piece==1?ion_sample.cdnt(Phase::DP_P):dp_p;
+    vector<double>& ixp = n_piece==0?ion_sample.cdnt(Phase::XP):xp;
+    vector<double>& iyp = n_piece==0?ion_sample.cdnt(Phase::YP):yp;
+    vector<double>& idp_p = n_piece==0?ion_sample.cdnt(Phase::DP_P):dp_p;
 
-    t_cooler_ /= n_piece;
+    if(n_piece>1) t_cooler_ /= n_piece;
 
     #ifdef _OPENMP
         #pragma omp parallel for
@@ -264,7 +264,7 @@ void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
         }
     }
 
-    t_cooler_ *= n_piece;
+    if(n_piece>1) t_cooler_ *= n_piece;
 }
 
 void ECoolRate::adjust_rate(Beam &ion, EBeam &ebeam, initializer_list<double*> func) {
@@ -413,19 +413,16 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     double emit_x0, emit_y0, emit_z0;
     ion_sample.emit(emit_x0, emit_y0, emit_z0);
 
-    if (n_piece==1)
+    if (n_piece==0)
         ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
     else {
         ions_copy(ion_sample);
         double l = cooler.length()/n_piece;
+        cooler.set_middle_beta_e(ebeam.twiss().bet_x, ebeam.twiss().bet_y);
         if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
-            double dx = ebeam.twiss().disp_x;
-            double dy = ebeam.twiss().disp_y;
-            ebeam.set_twiss(dx, dy, cooler.beta_he(), cooler.beta_ve(),
-                            cooler.alpha_he(), cooler.alpha_ve());
+            ebeam.set_twiss(cooler.beta_he(), cooler.beta_ve(), cooler.alpha_he(), cooler.alpha_ve());
             ebeam.twiss_drift(l/2);
-            GaussianBunchDisp* ptr = dynamic_cast<GaussianBunchDisp*>(&ebeam);
-            ptr->initialize(dx);
+            ebeam.updates();
             ions_drift(n_sample, l/2);
             ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
         }
@@ -433,9 +430,7 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
             ions_drift(n_sample, l);
             ebeam.twiss_drift(l);
             if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
-                GaussianBunchDisp* ptr = dynamic_cast<GaussianBunchDisp*>(&ebeam);
-                double dx = ebeam.twiss().disp_x;
-                ptr->initialize(dx);
+                ebeam.updates();
             }
              ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
         }

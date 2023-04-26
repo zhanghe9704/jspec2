@@ -110,7 +110,7 @@ struct Set_cooler{
      double alpha_x = 0;
      double alpha_y = 0;
      double pipe_radius = 0;
-     int n_piece = 1;
+     int n_piece = 0;
      double bet_mx = 0;
      double bet_my = 0;
      double bet_mx_e = 0;

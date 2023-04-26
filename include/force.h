@@ -27,6 +27,7 @@ public:
     void set_time_cooler(double t){time_cooler = t;}
     void set_mag_field(double x){mag_field = x;}
     double t_cooler(){return time_cooler;}
+    virtual bool magnetized() = 0;
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
@@ -45,6 +46,7 @@ private:
     double dlt(Temperature tpr,  double v2, vector<double>& dlt2_eff_e, int i);
     double lc(Temperature tpr, double rho_max, double rho_min, vector<double>& rho_lamor, int i);
 public:
+    bool magnetized(){return true;}
     void set_t_eff(double x){t_eff = x; v_eff = sqrt(t_eff*k_c*k_c/(k_me*1e6));}
     void set_v_eff(double v){v_eff = v; t_eff = v_eff*v_eff*k_me*1e6/(k_c*k_c);}
     virtual void friction_force(int charge_number, int ion_number,
@@ -65,6 +67,7 @@ protected:
                        double& force_tr, double& force_l) = 0;
 
 public:
+    bool magnetized(){return false;}
     void set_smooth_rho_max(bool b){smooth_rho_max = b;}
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
@@ -261,6 +264,7 @@ protected:
     void force(double ve_tr, double ve_l, double ve2_tr, double ve2_l, double v_tr, double v_l, double v2,
                double rho_min_const, int charge_number,  double density, double f_const, double& force_tr,double& force_l);
 public:
+    bool magnetized(){return true;}
     void set_smooth_factor(double x){k = x;}
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
@@ -331,6 +335,7 @@ protected:
     void force(double ve_tr, double ve_l, double ve2_tr, double ve2_l, double v_tr, double v_l, double v2,
                double rho_min_const, int charge_number,  double density, double f_const, double& force_tr,double& force_l);
 public:
+    bool magnetized(){return true;}
     void set_smooth_factor(double x){k = x;}
     void set_steps(int i) {n_a = i; n_ve = i; first_run = true;}
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run_fa = true;}

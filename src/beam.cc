@@ -2,6 +2,7 @@
 #include "beam.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdarg>
 #include <cstring>
 #include <fstream>
 #include "arbitrary_electron_beam.h"
@@ -135,13 +136,13 @@ void EBeam::twiss_drift(double l) {
     double alf = twiss_.alf_x;
     double bet = twiss_.bet_x;
     double gamma = (1 + alf*alf)/bet;
-    twiss_.alf_x = alf - l*l*gamma;
+    twiss_.alf_x = alf - l*gamma;
     twiss_.bet_x = bet - 2*l*alf + l*l*gamma;
 
     alf = twiss_.alf_y;
     bet = twiss_.bet_y;
     gamma = (1 + alf*alf)/bet;
-    twiss_.alf_y = alf - l*l*gamma;
+    twiss_.alf_y = alf - l*gamma;
     twiss_.bet_y = bet - 2*l*alf + l*l*gamma;
 }
 
@@ -467,30 +468,65 @@ void GaussianBunch::density(vector<double>& x, vector<double>& y, vector<double>
     }
 }
 
+void GaussianBunch::update_size() {
+    sigma_x_ = sqrt(emit_x_*twiss_.bet_x);
+    sigma_y_ = sqrt(emit_y_*twiss_.bet_y);
+}
+
+void GaussianBunch::set_tpr(double tpr_tr, double tpr_long) {
+    EBeam::set_tpr(tpr_tr, tpr_long);
+    sigma_xp_ = sqrt(tpr_t.at(0)/k_me)/(beta_*gamma_)*0.001;
+    sigma_yp_ = sigma_xp_;
+    emit_x_ = sigma_x_*sigma_xp_;
+    emit_y_ = sigma_y_*sigma_yp_;
+
+    double beta_x = sigma_x_/sigma_xp_;
+    double beta_y = sigma_y_/sigma_xp_;
+    set_twiss(beta_x, beta_y);
+}
+
+void GaussianBunchDisp::updates() {
+    update_size();
+    initialize(0);
+}
+
 void GaussianBunchDisp::initialize(double dx) {
-    dx_ = dx;
-//    Velocity velocity_ = Velocity::VARY_Z;
+    initialize(1, dx);
+}
+
+void GaussianBunchDisp::initialize(int count, ...) {
+
+    va_list args;
+    va_start(args, count);
+
+    if(count == 0) update_size();
+    if (count>0) twiss_.disp_x = va_arg(args,double);
+    double dx = twiss_.disp_x;
+
     velocity_ = Velocity::VARY_Z;
-    if(!iszero(twiss_.alf_x) && !iszero(dx_)) symmetry_vtr_ = false;
+    if(!iszero(twiss_.alf_x) && !iszero(twiss_.disp_x)) symmetry_vtr_ = false;
     if(!iszero(twiss_.alf_x)) velocity_ = Velocity::VARY;
-    double dp_p = v_rms_l.at(0)/(beta_*k_c);
+
+
+
+    double dp_p = count==0?v_rms_l_org/(beta_*k_c):v_rms_l.at(0)/(beta_*k_c);
     double sigma_x2_new = sigma_x_*sigma_x_+dp_p*dp_p*dx*dx;
 
     k = beta_*k_c*dx*dp_p*dp_p/sigma_x2_new;
     if (!iszero(twiss_.alf_x)) kx = beta_*k_c*twiss_.alf_x*sigma_x_*sigma_x_/(twiss_.bet_x*sigma_x2_new);
     if (!iszero(twiss_.alf_y)) ky = beta_*k_c*twiss_.alf_y/twiss_.bet_y;
 
-    tpr_l_org = tpr_l.at(0);
-    v_rms_l_org = v_rms_l.at(0);
+    if(count>0) tpr_l_org = tpr_l.at(0);
+    if(count>0) v_rms_l_org = v_rms_l.at(0);
     double tpr_l_new = tpr_l_org*sigma_x_*sigma_x_/sigma_x2_new;
 
-    tpr_tr_org = tpr_t.at(0);
+    if(count>0) tpr_tr_org = tpr_t.at(0);
     double c = 0;
     if(!iszero(twiss_.alf_x)) {
         c = twiss_.alf_x*twiss_.alf_x*twiss_.disp_x*twiss_.disp_x*dp_p*dp_p/sigma_x2_new;
         double tpr_h_new = tpr_tr_org*(1+c);
         double tpr_v_new = tpr_tr_org;
-        set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
+        EBeam::set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
         v_rms_krho.resize(1);
         v_rms_rho.resize(1);
         double rho2= c*sigma_x2_new/(sigma_x_*sigma_x_+dp_p*dp_p*dx*dx*(1+twiss_.alf_x*twiss_.alf_x));
@@ -498,10 +534,47 @@ void GaussianBunchDisp::initialize(double dx) {
         v_rms_krho.at(0) = 1/(1-rho2);
     }
     else {
-        set_tpr(tpr_t.at(0), tpr_l_new);
+        EBeam::set_tpr(tpr_t.at(0), tpr_l_new);
     }
     sigma_x_ = sqrt(sigma_x2_new);
+
 }
+//void GaussianBunchDisp::initialize(double dx) {
+//    dx_ = dx;
+//
+////    Velocity velocity_ = Velocity::VARY_Z;
+//    velocity_ = Velocity::VARY_Z;
+//    if(!iszero(twiss_.alf_x) && !iszero(dx_)) symmetry_vtr_ = false;
+//    if(!iszero(twiss_.alf_x)) velocity_ = Velocity::VARY;
+//    double dp_p = v_rms_l.at(0)/(beta_*k_c);
+//    double sigma_x2_new = sigma_x_*sigma_x_+dp_p*dp_p*dx*dx;
+//
+//    k = beta_*k_c*dx*dp_p*dp_p/sigma_x2_new;
+//    if (!iszero(twiss_.alf_x)) kx = beta_*k_c*twiss_.alf_x*sigma_x_*sigma_x_/(twiss_.bet_x*sigma_x2_new);
+//    if (!iszero(twiss_.alf_y)) ky = beta_*k_c*twiss_.alf_y/twiss_.bet_y;
+//
+//    tpr_l_org = tpr_l.at(0);
+//    v_rms_l_org = v_rms_l.at(0);
+//    double tpr_l_new = tpr_l_org*sigma_x_*sigma_x_/sigma_x2_new;
+//
+//    tpr_tr_org = tpr_t.at(0);
+//    double c = 0;
+//    if(!iszero(twiss_.alf_x)) {
+//        c = twiss_.alf_x*twiss_.alf_x*twiss_.disp_x*twiss_.disp_x*dp_p*dp_p/sigma_x2_new;
+//        double tpr_h_new = tpr_tr_org*(1+c);
+//        double tpr_v_new = tpr_tr_org;
+//        EBeam::set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
+//        v_rms_krho.resize(1);
+//        v_rms_rho.resize(1);
+//        double rho2= c*sigma_x2_new/(sigma_x_*sigma_x_+dp_p*dp_p*dx*dx*(1+twiss_.alf_x*twiss_.alf_x));
+//        v_rms_rho.at(0) = sqrt(rho2);
+//        v_rms_krho.at(0) = 1/(1-rho2);
+//    }
+//    else {
+//        set_tpr(tpr_t.at(0), tpr_l_new);
+//    }
+//    sigma_x_ = sqrt(sigma_x2_new);
+//}
 
 void GaussianBunchDisp::velocity_shift(vector<double>& x, vector<double>& y, vector<double>& z, int n) {
     if(v_avg_l.size()<n) v_avg_l.resize(n);
@@ -772,20 +845,20 @@ void EBeam::adjust_particle_location() {
         for(int i=0; i<n_sample; ++i) {
             dp_p.at(i) = k*samples->vz.at(i);
         }
-        if (!iszero(dx_)) adjust_disp(dx_, samples->x, dp_p, samples->x, n_sample);
-        if (!iszero(dy_)) adjust_disp(dy_, samples->y, dp_p, samples->y, n_sample);
+        if (!iszero(twiss_.disp_x)) adjust_disp(twiss_.disp_x, samples->x, dp_p, samples->x, n_sample);
+        if (!iszero(twiss_.disp_y)) adjust_disp(twiss_.disp_y, samples->y, dp_p, samples->y, n_sample);
     }
 }
 
-void EBeam::set_twiss(double dx, double dy, double betx, double bety, double alfx ,double alfy, double ddx, double ddy){
-    twiss_.disp_x = dx;
-    twiss_.disp_y = dy;
-    twiss_.bet_x = betx;
-    twiss_.bet_y = bety;
-    twiss_.alf_x = alfx;
-    twiss_.alf_y = alfy;
-    twiss_.disp_dx = ddx;
-    twiss_.disp_dy = ddy;
-}
+//void EBeam::set_twiss(double dx, double dy, double betx, double bety, double alfx ,double alfy, double ddx, double ddy){
+//    twiss_.disp_x = dx;
+//    twiss_.disp_y = dy;
+//    twiss_.bet_x = betx;
+//    twiss_.bet_y = bety;
+//    twiss_.alf_x = alfx;
+//    twiss_.alf_y = alfy;
+//    twiss_.disp_dx = ddx;
+//    twiss_.disp_dy = ddy;
+//}
 
 
