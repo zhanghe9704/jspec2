@@ -75,10 +75,16 @@ void EBeam::set_tpr(double tpr_tr, double tpr_long) {
     tpr_t.at(0) =  tpr_tr;
     tpr_l.at(0) = tpr_long;
 
+
     v_rms_t.resize(1);
     v_rms_l.resize(1);
     v_rms_t.at(0) = sqrt(tpr_tr/k_me)*0.001*k_c;
     v_rms_l.at(0) = sqrt(tpr_long/k_me)*0.001*k_c;
+
+    tpr_v.resize(1);
+    tpr_v.at(0) = tpr_tr;
+    v_rms_v.resize(1);
+    v_rms_v.at(0) = v_rms_t.at(0);
 }
 
 void EBeam::set_tpr(double tpr_h, double tpr_y, double tpr_long) {
@@ -153,6 +159,17 @@ void GaussianBunch::set_angles(double sigma_xp, double sigma_yp, double sigma_dp
     double tpr_t = (sigma_xp*sigma_xp + sigma_yp*sigma_yp)*beta_*beta_*gamma_*gamma_*k_me*1e6/2;
     double tpr_l = sigma_dpp*sigma_dpp*beta_*beta_*k_me*1e6;
     set_tpr(tpr_t, tpr_l);
+}
+
+void GaussianBunchDisp::set_angles(double sigma_xp, double sigma_yp, double sigma_dpp) {
+    sigma_xp_ = sigma_xp;
+    sigma_yp_ = sigma_yp;
+    sigma_dpp_ = sigma_dpp;
+    double tpr_h = sigma_xp*sigma_xp*beta_*beta_*gamma_*gamma_*k_me*1e6;
+    double tpr_v = sigma_yp*sigma_yp*beta_*beta_*gamma_*gamma_*k_me*1e6;
+    double tpr_l = sigma_dpp*sigma_dpp*beta_*beta_*k_me*1e6;
+    EBeam::set_tpr(tpr_h, tpr_v, tpr_l);
+    symmetry_vtr_  = false;
 }
 
 void UniformCylinder::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n_particle) {
@@ -521,11 +538,13 @@ void GaussianBunchDisp::initialize(int count, ...) {
     double tpr_l_new = tpr_l_org*sigma_x_*sigma_x_/sigma_x2_new;
 
     if(count>0) tpr_tr_org = tpr_t.at(0);
+    if(count>0) tpr_v_org = tpr_v.at(0);
+
     double c = 0;
-    if(!iszero(twiss_.alf_x)) {
+    if(!iszero(twiss_.alf_x) || !symmetry_vtr_ ) {
         c = twiss_.alf_x*twiss_.alf_x*twiss_.disp_x*twiss_.disp_x*dp_p*dp_p/sigma_x2_new;
         double tpr_h_new = tpr_tr_org*(1+c);
-        double tpr_v_new = tpr_tr_org;
+        double tpr_v_new = tpr_v_org;
         EBeam::set_tpr(tpr_h_new, tpr_v_new, tpr_l_new);
         v_rms_krho.resize(1);
         v_rms_rho.resize(1);

@@ -330,7 +330,7 @@ class GaussianBunch: public EBeam{
                 double cx, double cy, double cz);
     Shape shape() const {return Shape::GAUSSIAN_BUNCH;}
     double length() const {return 6*sigma_s_;}
-    void set_angles(double sigma_xp, double sigma_yp, double sigma_dpp);
+    void virtual set_angles(double sigma_xp, double sigma_yp, double sigma_dpp);
     void update_size();
     void updates(){update_size();}
     void set_tpr(double tpr_tr, double tpr_long);
@@ -339,9 +339,10 @@ class GaussianBunch: public EBeam{
 };
 
 class GaussianBunchDisp : public GaussianBunch {
-    double v_rms_l_org = 0;  //Original longitudinal rml velocity without dispersion, used for Shape::BLASKIEWICZ.
-    double tpr_l_org = 0; //Original longitudinal temperature without dispersion, used for Shape::BLASKIEWICZ.
-    double tpr_tr_org = 0; //Original transverse temperature without dispersion, used for Shape::BLASKIEWICZ.
+    double v_rms_l_org = 0;  //Original longitudinal rml velocity without dispersion, used for Shape::GAUSSIAN_BUNCH_DISP.
+    double tpr_l_org = 0; //Original longitudinal temperature without dispersion, used for Shape::GAUSSIAN_BUNCH_DISP.
+    double tpr_tr_org = 0; //Original transverse temperature without dispersion, used for Shape::GAUSSIAN_BUNCH_DISP.
+    double tpr_v_org = 0;
     void velocity_shift(vector<double>& x, vector<double>& y, vector<double>& z, int n);
     void velocity_shift(vector<double>& x, vector<double>& y, vector<double>& z, int n, double cx, double cy, double cz);
     double k = 0; //Coefficient to calculate velocity shift
@@ -353,6 +354,7 @@ class GaussianBunchDisp : public GaussianBunch {
     void set_tpr(double tpr_tr, double tpr_long){GaussianBunch::set_tpr(tpr_tr, tpr_long);}
     void initialize(double dx);
     void updates();
+    void virtual set_angles(double sigma_xp, double sigma_yp, double sigma_dpp);
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n);
     void density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n,
                 double cx, double cy, double cz);

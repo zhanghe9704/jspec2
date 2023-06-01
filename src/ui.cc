@@ -465,6 +465,7 @@ void create_e_beam(Set_ptrs &ptrs) {
         double sigma_z = ptrs.e_beam_ptr->sigma_z;
         assert(sigma_x > 0 && sigma_y > 0 && sigma_z > 0 && n > 0 && "WRONG PARAMETER VALUE FOR BUNCHED_GAUSSIAN SHAPE");
         ptrs.e_beam.reset(new GaussianBunchDisp(n, sigma_x, sigma_y, sigma_z));
+        if (fabs(dx)<1e-6) dx = 1e-6;
     }
     else if(shape == "BUNCHED_UNIFORM") {
         double current = ptrs.e_beam_ptr->current;

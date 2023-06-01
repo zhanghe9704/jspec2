@@ -419,17 +419,19 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
         ions_copy(ion_sample);
         double l = cooler.length()/n_piece;
         cooler.set_middle_beta_e(ebeam.twiss().bet_x, ebeam.twiss().bet_y);
-        if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
+        if (!force_solver.magnetized()) {
+//        if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
             ebeam.set_twiss(cooler.beta_he(), cooler.beta_ve(), cooler.alpha_he(), cooler.alpha_ve());
             ebeam.twiss_drift(l/2);
             ebeam.updates();
-            ions_drift(n_sample, l/2);
-            ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
         }
+        ions_drift(n_sample, l/2);
+        ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
         for (int i=1; i<n_piece; ++i) {
             ions_drift(n_sample, l);
             ebeam.twiss_drift(l);
-            if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
+            if (!force_solver.magnetized()) {
+//            if (ebeam.shape() == Shape::GAUSSIAN_BUNCH_DISP) {
                 ebeam.updates();
             }
              ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
