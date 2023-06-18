@@ -129,6 +129,10 @@ protected:
     bool symmetry_vtr_ = true;  //Axial symmetry of transverse velocity. It's broken when dispersion exists and alpha != 0.
     double emit_x_;
     double emit_y_;
+    bool generate_samples_ = false;
+
+    std::vector<int> list_i;
+    int idx_out;
 public:
     virtual ~EBeam(){};
     Velocity velocity() const {return velocity_;}
@@ -203,6 +207,8 @@ public:
     bool symmetry_vtr(){return symmetry_vtr_;}
     void twiss_drift(double l);
     virtual void updates(){};
+    void generate_samples(bool b){generate_samples_ = b;}
+    bool generate_samples(){return generate_samples_;}
 
 //    EBeam& get_samples(){return *samples;}
 };

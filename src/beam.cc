@@ -671,8 +671,8 @@ void ParticleBunch::load_particle() {
 
 void ParticleBunch::density(vector<double>& x, vector<double>& y, vector<double>& z, vector<double>& ne, int n) {
     double rate = n_electron_/n_;
-    std::vector<int> list_i;
-    int idx_out;
+//    std::vector<int> list_i;
+//    int idx_out;
     create_ion_tree(x, y, z, n, tree_, list_i, idx_out);
     if (v_x_corr_)
         {::density(tree_, list_e_, vx, vy, vz, n_, list_i, idx_out, n, ne, v_avg_l, v_rms_t, v_rms_l);}
@@ -693,8 +693,8 @@ void ParticleBunch::density(vector<double>& x, vector<double>& y, vector<double>
         y[i] += cy;
         z[i] += cz;
     }
-    std::vector<int> list_i;
-    int idx_out;
+//    std::vector<int> list_i;
+//    int idx_out;
     create_ion_tree(x, y, z, n, tree_, list_i, idx_out);
     if (v_x_corr_){
         velocity_ = Velocity::VARY_Z;

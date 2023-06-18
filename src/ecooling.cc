@@ -284,7 +284,8 @@ void ECoolRate::adjust_rate(Beam &ion, EBeam &ebeam, initializer_list<double*> f
 void ECoolRate::ecool_ions(FrictionForceSolver &force_solver, Beam &ion, Ions &ion_sample, Cooler &cooler, EBeam &ebeam,
                 Ring &ring){
     int n_sample = ion_sample.n_sample();
-    if(ebeam.disp() && ebeam.shape()!=Shape::GAUSSIAN_BUNCH_DISP) {
+//    if(ebeam.disp() && ebeam.shape()!=Shape::GAUSSIAN_BUNCH_DISP) {
+    if(ebeam.generate_samples()) {
         electron_density(ion_sample,*ebeam.samples);
     }
     else {
@@ -313,7 +314,8 @@ void ECoolRate::ecool_ions(FrictionForceSolver &force_solver, Beam &ion, Ions &i
 
 
     //Calculate friction force
-    if(ebeam.disp() && ebeam.shape()!=Shape::GAUSSIAN_BUNCH_DISP) {
+//    if(ebeam.disp() && ebeam.shape()!=Shape::GAUSSIAN_BUNCH_DISP) {
+    if(ebeam.generate_samples()) {
 //        ParticleBunch* ptr = dynamic_cast<ParticleBunch*>(ebeam.samples.get());
 //        force(n_sample, ion, *ptr, cooler, force_solver);
 //        auto p = ebeam.samples.get();
