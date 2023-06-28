@@ -215,9 +215,9 @@ void ForceNonMag::friction_force(int charge_number, int ion_number, vector<doubl
         break;
     }
     case Temperature::VARY: {
-        #ifdef _OPENMP
-            #pragma omp parallel for
-        #endif // _OPENMP
+//        #ifdef _OPENMP
+//            #pragma omp parallel for
+//        #endif // _OPENMP
         for(int i=0; i<ion_number; ++i) {
             if(iszero(density_e.at(i))) {
                 force_tr[i] = 0;
@@ -232,9 +232,6 @@ void ForceNonMag::friction_force(int charge_number, int ion_number, vector<doubl
                 double ve2 = ve_l*ve_l + ve_tr*ve_tr;
                 force(v, v_tr[i], v_long[i], v2, ve_tr, ve_l, ve2, f_const, rho_min_const, charge_number,
                       density_e.at(i), force_tr[i], force_long[i]);
-                if(std::isnan(force_tr[i])) {
-                    std::cout<<i<<' '<<ve_l<<' '<<ve_tr<<' '<<ve2<<' '<<density_e.at(i)<<std::endl;
-                }
             }
             else {
                 force_tr[i] = 0;
@@ -1127,7 +1124,7 @@ void ForceDSM::friction_force(int charge_number, int ion_number,
         double ve2_tr = ve_tr*ve_tr;
         double ve2_l = ve_l*ve_l;
         double ve2 = ve2_tr + ve2_l;
-        auto start_time = std::chrono::high_resolution_clock::now();
+//        auto start_time = std::chrono::high_resolution_clock::now();
         #ifdef _OPENMP
         #pragma omp parallel for
         #endif // _OPENMP
@@ -1144,9 +1141,9 @@ void ForceDSM::friction_force(int charge_number, int ion_number,
             }
         }
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto time = end_time - start_time;
-    std::cout << "Force mag DSM took " << time/std::chrono::microseconds(1) << " us to run.\n";
+//    auto end_time = std::chrono::high_resolution_clock::now();
+//    auto time = end_time - start_time;
+//    std::cout << "Force mag DSM took " << time/std::chrono::microseconds(1) << " us to run.\n";
         break;
     }
     case Temperature::VARY: {

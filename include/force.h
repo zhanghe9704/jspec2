@@ -199,6 +199,8 @@ protected:
     double d;
     double f_inv_norm;
 
+    bool user_defined_electron = false;
+
 
     void pre_int(double sgm_vtr, double sgm_vl);
     void calc_exp_vtr(double sgm_vtr, double sgm_vl);

@@ -151,6 +151,7 @@ struct Set_e_beam{
      int n_cz = 0;
      bool corr = false;
      bool binary = false;
+     bool generate_samples = false;
      int buffer = 1000;
      double t_rising = 0;
      double t_falling = 0;
