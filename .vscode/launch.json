@@ -9,12 +9,29 @@
         "name": "C++ Debug",
         "type": "cppdbg",
         "request": "launch",
-        "program": "${workspaceFolder}/output/debug/jspec${env:OS:+.exe}",
+//        "program": "${workspaceFolder}/output/debug/jspec}",
         "args": ["test_bunched_cooling_04.txt"],
-        "cwd": "${workspaceFolder}/debug",
+//        "cwd": "${workspaceFolder}/debug",
         "environment": [],
         "externalConsole": false,
-        "MIMode": "gdb"
+        "linux": {
+            "program": "${workspaceFolder}/output/debug/jspec",
+            "cwd": "${workspaceFolder}/debug",
+            "MIMode": "gdb"
+        },
+        "windows": {
+            "program": "${workspaceFolder}\\output\\debug\\jspec.exe",
+            "cwd": "${workspaceFolder}\\debug",
+            "MIMode": "gdb",
+            "miDebuggerPath": "C:\\mingw64\\bin\\gdb.exe",
+            "setupCommands": [
+              {
+                "description": "Enable pretty-printing for gdb",
+                "text": "-enable-pretty-printing",
+                "ignoreFailures": true
+              }
+            ]
+        }
       }
     ]
   }

@@ -18,7 +18,29 @@
                 "-lm",
                 "-l:libmuparser.so.2",
                 "-o",
-                "${workspaceFolder}/output/debug/jspec${env:OS:+.exe}"
+                "${workspaceFolder}/output/debug/jspec"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "build-debug-windows",
+            "type": "shell",
+            "command": "C:\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
+            "args": [
+                "-pg",
+                "-O0",
+                "-Wall",
+                "-Wextra",
+                "${workspaceFolder}\\src\\*.cc",
+                "-I${workspaceFolder}\\include",
+                "-L${workspaceFolder}\\lib",
+                "-lgsl",
+                "-lcblas",
+                "-lm",
+                "-lmuparser",
+                "-lgmon",
+                "-o",
+                "${workspaceFolder}\\output\\debug\\jspec.exe"
             ],
             "group": "build"
         },
@@ -36,7 +58,28 @@
                 "-lgsl",
                 "-lgslcblas",
                 "-o",
-                "${workspaceFolder}/output/release/jspec${env:OS:+.exe}"
+                "${workspaceFolder}/output/release/jspec"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "build-release-windows",
+            "type": "shell",
+            "command": "C:\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
+            "args": [
+                "-O3",
+                "${workspaceFolder}\\src\\*.cc",
+                "-I${workspaceFolder}\\include",
+                "-L${workspaceFolder}\\lib",
+                "-lm",
+                "-lmuparser",
+                "-lgsl",
+                "-lcblas",
+                "-static-libgcc",
+                "-static-libstdc++",
+                "-fopenmp",
+                "-o",
+                "${workspaceFolder}\\output\\release\\jspec"
             ],
             "group": "build"
         },
@@ -49,6 +92,16 @@
                 "${workspaceFolder}/output/debug/*",
                 "${workspaceFolder}/src/*.o"
             ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "clean-debug-windows",
+            "type": "shell",
+            "command": "rm -Path ${workspaceFolder}\\output\\debug\\*.* -Recurse; rm -Path ${workspaceFolder}\\src\\*.o -Recurse",
             "group": "build",
             "presentation": {
                 "reveal": "always",
@@ -71,12 +124,36 @@
             }
         },
         {
+            "label": "clean-release-windows",
+            "type": "shell",
+            "command": "rm -Path ${workspaceFolder}\\output\\release\\*.* -Recurse; rm -Path ${workspaceFolder}\\src\\*.o -Recurse",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
             "label": "rebuild-debug",
             "type": "shell",
             "command": "",
             "dependsOn": [
                 "clean-debug",
                 "build-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "rebuild-debug-windows",
+            "type": "shell",
+            "command": "",
+            "dependsOn": [
+                "clean-debug-windows",
+                "build-debug-windows"
             ],
             "group": "build",
             "presentation": {
@@ -99,9 +176,23 @@
             }
         },
         {
+            "label": "rebuild-release-windows",
+            "type": "shell",
+            "command": "",
+            "dependsOn": [
+                "clean-release-windows",
+                "build-release-windows"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
             "label": "Run Release JSPEC",
             "type": "shell",
-            "command": "${workspaceFolder}/output/release/jspec${env:OS:+.exe}",
+            "command": "${workspaceFolder}/output/release/jspec",
             "args": [
                 "test_bunched_cooling_04.txt"
             ],
@@ -111,15 +202,39 @@
             }
         },
         {
+            "label": "Run Release JSPEC windows",
+            "type": "shell",
+            "command": "${workspaceFolder}\\output\\release\\jspec.exe",
+            "args": [
+                "test_bunched_cooling_04.txt"
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}\\debug"
+            }
+        },
+        {
             "label": "Run Debug JSPEC",
             "type": "shell",
-            "command": "${workspaceFolder}/output/debug/jspec${env:OS:+.exe}",
+            "command": "${workspaceFolder}/output/debug/jspec",
             "args": [
                 "test_bunched_cooling_04.txt"
             ],
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/debug"
+            }
+        },
+        {
+            "label": "Run Debug JSPEC windows",
+            "type": "shell",
+            "command": "${workspaceFolder}\\output\\debug\\jspec.exe",
+            "args": [
+                "test_bunched_cooling_04.txt"
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}\\debug"
             }
         },
         {
