@@ -23,25 +23,27 @@
                 ]
             },
             "windows": {
-//                "command": "C:\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
-                "command": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
+                "command": "${config:gcc.path}\\g++.exe",
+//               "command": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
                 "args": [
-                    "-pg",
-                    "-O0",
+//                    "-pg",
+//                    "-O0",
+                    "-g",
                     "-Wall",
                     "-Wextra",
                     "${workspaceFolder}\\src\\*.cc",
                     "-I${workspaceFolder}\\include",
                     "-L${workspaceFolder}\\lib",
                     "-lgsl",
-                    "-lcblas",
-                    "-lm",
+//                    "-lcblas",
+//                    "-lm",
                     "-lmuparser",
                     "-lgmon",
+                    "-fopenmp",
                     "-o",
                     "${workspaceFolder}\\output\\debug\\jspec.exe"
                 ]
-            } ,           
+            } ,          
             "group": "build"
         },
         {
@@ -63,8 +65,8 @@
                 ]
             },
             "windows":{
- //               "command": "C:\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
-                "command": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
+                "command": "${config:gcc.path}\\g++.exe",
+ //               "command": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin\\x86_64-w64-mingw32-g++.exe",
                 "args": [
                     "-O3",
                     "${workspaceFolder}\\src\\*.cc",
@@ -125,7 +127,6 @@
         {
             "label": "rebuild-debug",
             "type": "shell",
-            "command": "",
             "dependsOn": [
                 "clean-debug",
                 "build-debug"
@@ -139,7 +140,6 @@
         {
             "label": "rebuild-release",
             "type": "shell",
-            "command": "",
             "dependsOn": [
                 "clean-release",
                 "build-release"
@@ -171,18 +171,6 @@
             "group": "build"      
         },
         {
-            "label": "Run Release JSPEC windows",
-            "type": "shell",
-            "command": "${workspaceFolder}\\output\\release\\jspec.exe",
-            "args": [
-                "test_bunched_cooling_04.txt"
-            ],
-            "group": "build",
-            "options": {
-                "cwd": "${workspaceFolder}\\debug"
-            }
-        },
-        {
             "label": "Run Debug JSPEC",
             "type": "shell",
             "command": "${workspaceFolder}/output/debug/jspec",
@@ -192,18 +180,6 @@
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}/debug"
-            }
-        },
-        {
-            "label": "Run Debug JSPEC windows",
-            "type": "shell",
-            "command": "${workspaceFolder}\\output\\debug\\jspec.exe",
-            "args": [
-                "test_bunched_cooling_04.txt"
-            ],
-            "group": "build",
-            "options": {
-                "cwd": "${workspaceFolder}\\debug"
             }
         },
         {

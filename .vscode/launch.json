@@ -23,7 +23,7 @@
             "program": "${workspaceFolder}\\output\\debug\\jspec.exe",
             "cwd": "${workspaceFolder}\\debug",
             "MIMode": "gdb",
-            "miDebuggerPath": "C:\\mingw64\\bin\\gdb.exe",
+            "miDebuggerPath": "${config:gcc.path}\\gdb.exe",
             "setupCommands": [
               {
                 "description": "Enable pretty-printing for gdb",
