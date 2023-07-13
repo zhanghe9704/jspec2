@@ -23,7 +23,7 @@ file(GLOB_RECURSE sources *.cc)
 # endif()
 
 
-include_directories(include)
+# include_directories(include)
 
 # link_directories(${CMAKE_SOURCE_DIR}/lib)
 
@@ -54,5 +54,5 @@ link_directories(${CMAKE_SOURCE_DIR}/lib)
 if(UNIX) 
     add_executable(jspec ${sources})
 elseif(WIN32)
-    add_executable(jspec.exe ${sources})
+    add_executable(jspec ${sources})
 endif()
