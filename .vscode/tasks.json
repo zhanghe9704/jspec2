@@ -38,7 +38,7 @@
 //                    "-lcblas",
 //                    "-lm",
                     "-lmuparser",
-                    "-lgmon",
+//                    "-lgmon",
                     "-fopenmp",
                     "-o",
                     "${workspaceFolder}\\output\\debug\\jspec.exe"
