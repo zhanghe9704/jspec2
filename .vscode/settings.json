@@ -2,5 +2,47 @@
     "gcc.path": "c:\\MinGW\\bin",
  //   "gcc.path": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin",
     "cmake.configureOnOpen": false,
-    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "cmake.defaultVariants": {
+
+        "buildType": {
+            "default": "debug",
+            "description": "The build type.",
+            "choices": {
+                "debug": {
+                    "short": "Debug",
+                    "long": "Disable optimizations - include debug information.",
+                    "buildType": "Debug"
+                },
+                "release": {
+                    "short": "Release",
+                    "long": "Optimize for speed - exclude debug information.",
+                    "buildType": "Release"
+                },
+                "debugOMP": {
+                    "short": "DebugOMP",
+                    "long": "Disable optimizations w. OpenMP - include debug information.",
+                    "buildType": "Debug",
+                    "USE_OPENMP": "ON"
+                },
+                "releaseOMP": {
+                    "short": "ReleaseOMP",
+                    "long": "Optimize for speed w. OpenMP  - exclude debug information.",
+                    "buildType": "Release",
+                    "USE_OPENMP": "ON"
+                },
+                "minsize": {
+                    "short": "MinSizeRel",
+                    "long": "Optimize for smallest binary size - exclude debug information.",
+                    "buildType": "MinSizeRel"
+                },
+                "reldeb": {
+                    "short": "RelWithDebInfo",
+                    "long": "Optimize for speed - include debug information.",
+                    "buildType": "RelWithDebInfo"
+                }
+            }
+        }
+    },
+    // "cmake.cmakePath": "F:\\\\Programs\\\\cmake-3.27\\\\bin\\\\cmake.exe"
 }
