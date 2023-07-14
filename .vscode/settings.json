@@ -4,7 +4,6 @@
     "cmake.configureOnOpen": false,
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "cmake.defaultVariants": {
-
         "buildType": {
             "default": "debug",
             "description": "The build type.",
@@ -19,18 +18,6 @@
                     "long": "Optimize for speed - exclude debug information.",
                     "buildType": "Release"
                 },
-                "debugOMP": {
-                    "short": "DebugOMP",
-                    "long": "Disable optimizations w. OpenMP - include debug information.",
-                    "buildType": "Debug",
-                    "USE_OPENMP": "ON"
-                },
-                "releaseOMP": {
-                    "short": "ReleaseOMP",
-                    "long": "Optimize for speed w. OpenMP  - exclude debug information.",
-                    "buildType": "Release",
-                    "USE_OPENMP": "ON"
-                },
                 "minsize": {
                     "short": "MinSizeRel",
                     "long": "Optimize for smallest binary size - exclude debug information.",
@@ -42,7 +29,26 @@
                     "buildType": "RelWithDebInfo"
                 }
             }
-        }
-    },
+        },
+        "omp": {
+            "default": "",
+            "description": "compile without openmp",
+            "choices": {
+              "": {
+                "short": "",
+                "long": "compile without openmp",
+                "settings": {
+                    "USE_OPENMP": "OFF"
+                }
+              },
+              "omp": {
+                "short": "omp",
+                "long": "compile with openmp",
+                "settings": {
+                    "USE_OPENMP": "ON"
+                }
+            }
+    }
     // "cmake.cmakePath": "F:\\\\Programs\\\\cmake-3.27\\\\bin\\\\cmake.exe"
 }
+
