@@ -166,7 +166,7 @@
                 }
             },
             "args": [
-                "test_bunched_cooling_04.txt"
+                "${config:jspec.inputfile}"
             ],
             "group": "build"      
         },
@@ -175,7 +175,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/output/debug/jspec",
             "args": [
-                "test_bunched_cooling_04.txt"
+                "${config:jspec.inputfile}"
             ],
             "group": "build",
             "options": {

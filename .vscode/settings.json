@@ -1,6 +1,6 @@
 {
     "gcc.path": "c:\\MinGW\\bin",
- //   "gcc.path": "C:\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin",
+    "jspec.inputfile": "test_bunched_cooling_04.txt",
     "cmake.configureOnOpen": false,
     "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
     "cmake.defaultVariants": {
