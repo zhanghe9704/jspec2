@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
-project(C CXX)
+project(JSPEC_Fortran LANGUAGES CXX Fortran)
+
 
 set (LIBNAME JSPEC)
 
@@ -14,7 +15,7 @@ set(SRC_DIRS
 )
 
 set(EXE_SPECS 
-  cmake.jspec_bmad
+  cmake.jspec
 )
 
 #include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
