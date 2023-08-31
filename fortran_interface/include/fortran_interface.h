@@ -105,13 +105,13 @@ EBeam* particle_bunch_new(double n_electron, char* filename, double length = 0) 
     return new ParticleBunch(n_electron, file, length);
 }
 
-void jspec_delete(Ions* ptr) {delete ptr;}
-void jspec_delete(Beam* ptr)  {delete ptr;}
-void jspec_delete(FrictionForceSolver* ptr)  {delete ptr;}
-void jspec_delete(Lattice* ptr)  {delete ptr;}
-void jspec_delete(Ring* ptr)  {delete ptr;}
-void jspec_delete(Cooler* ptr)  {delete ptr;}
-void jspec_delete(EBeam* ptr)  {delete ptr;}
+//void jspec_delete(Ions* ptr) {delete ptr;}
+void jspec_delete_beam(Beam* ptr)  {delete ptr;}
+//void jspec_delete(FrictionForceSolver* ptr)  {delete ptr;}
+//void jspec_delete(Lattice* ptr)  {delete ptr;}
+//void jspec_delete(Ring* ptr)  {delete ptr;}
+//void jspec_delete(Cooler* ptr)  {delete ptr;}
+//void jspec_delete(EBeam* ptr)  {delete ptr;}
 
 
 }
