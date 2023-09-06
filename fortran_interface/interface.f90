@@ -9,6 +9,12 @@ module jspec
         type(c_ptr) :: object = c_null_ptr
     end type Beam
 
+  
+    enum, bind(c)
+        enumerator :: JSPEC_Beam = 0
+        enumerator :: JSPEC_Lattice = 1
+    end enum
+
     interface
 
         ! interface for beam_bunched_new
@@ -45,6 +51,12 @@ module jspec
             use iso_c_binding
             type(c_ptr), value :: ptr
         end subroutine jspec_delete_beam
+
+        subroutine jspec_delete(ptr, name) bind(c, name="jspec_delete")
+            use iso_c_binding
+            type(c_ptr), value :: ptr
+            integer(c_int), value :: name
+        end subroutine jspec_delete
 
     end interface
 

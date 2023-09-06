@@ -10,6 +10,8 @@
 
 #include <string>
 
+enum class JSPEC_Class {BEAM};
+
 extern "C" {
 //Ions_MonteCarlo* ions_montecarlo_new(int n) {
 //    return new Ions_MonteCarlo(n);
@@ -25,12 +27,12 @@ Beam* beam_coasting_new(int charge_number, double mass_number, double kinetic_en
     return new Beam(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, n_particle);
 }
 //
-//Lattice* lattice_new(char* filename) {
-//    assert(filename && "Error: Invalid filename for lattice!");
-//    std::string file(filename);
-//    return new Lattice(file);
-//}
-//
+Lattice* lattice_new(char* filename) {
+   assert(filename && "Error: Invalid filename for lattice!");
+   std::string file(filename);
+   return new Lattice(file);
+}
+
 //Ring* ring_new(double circ, Beam* beam_defined) {
 //    return new Ring(circ, *beam_defined);
 //}
@@ -112,6 +114,8 @@ void jspec_delete_beam(Beam* ptr)  {delete ptr;}
 //void jspec_delete(Ring* ptr)  {delete ptr;}
 //void jspec_delete(Cooler* ptr)  {delete ptr;}
 //void jspec_delete(EBeam* ptr)  {delete ptr;}
+
+void jspec_delete(void* ptr, JSPEC_Class name);
 
 
 }
