@@ -2,7 +2,7 @@
 CXX = g++
 FC = gfortran
 CXXFLAGS = -I../include -Wall -fPIC -std=c++11
-FCFLAGS = -I. -J. -Wall
+FCFLAGS = -I. -J. -Wall -std=f2003
 LDFLAGS = -L.
 
 # Objects and Libraries
@@ -21,7 +21,7 @@ all: $(LIBRARY) $(FORTRAN_OBJECTS) $(FORTRAN_MODULES)
 $(FORTRAN_MODULES): $(FORTRAN_OBJECTS)
 
 $(FORTRAN_OBJECTS): interface.f90 $(LIBRARY)
-	$(FC) $(FCFLAGS) -o $@ -c $< $(LDFLAGS) -ljspec
+	$(FC) -o $@ -c $< $(LDFLAGS) $(FCFLAGS) -ljspec
 
 $(LIBRARY): $(CPP_OBJECTS)
 	ar rcs $@ $^
