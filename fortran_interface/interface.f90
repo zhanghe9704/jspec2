@@ -9,6 +9,10 @@ module jspec
         type(c_ptr) :: object = c_null_ptr
     end type Beam
 
+    type, bind(c) :: Lattice
+        private
+        type(c_ptr) :: object = c_null_ptr
+    end type Lattice
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
