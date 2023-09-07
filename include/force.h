@@ -28,12 +28,14 @@ public:
     void set_mag_field(double x){mag_field = x;}
     double t_cooler(){return time_cooler;}
     virtual bool magnetized() = 0;
+    virtual ForceFormula formula() = 0;
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long) = 0;
     virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
                                 vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
                                 vector<double>& force_h, vector<double>& force_v, vector<double>& force_l){};
+    virtual ~FrictionForceSolver(){};
 };
 
 class ForcePark: public FrictionForceSolver {
@@ -49,6 +51,7 @@ public:
     bool magnetized(){return true;}
     void set_t_eff(double x){t_eff = x; v_eff = sqrt(t_eff*k_c*k_c/(k_me*1e6));}
     void set_v_eff(double v){v_eff = v; t_eff = v_eff*v_eff*k_me*1e6/(k_c*k_c);}
+    virtual ForceFormula formula(){return ForceFormula::PARKHOMCHUK;}
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
@@ -81,7 +84,7 @@ private:
                                double f_const, double rho_min_const, int charge_number, double ne,
                                double& force_tr, double& force_l);
 public:
-
+    virtual ForceFormula formula(){return ForceFormula::NONMAG_DERBENEV;}
 };
 
 class ForceNonMagMeshkov: public ForceNonMag {
@@ -90,7 +93,7 @@ private:
                                double f_const, double rho_min_const, int charge_number, double ne,
                                double& force_tr, double& force_l);
 public:
-
+    virtual ForceFormula formula(){return ForceFormula::NONMAG_MESHKOV;}
 };
 
 class ForceNonMagNumeric1D: public ForceNonMag {
@@ -124,6 +127,7 @@ private:
 public:
     void set_espabs(double x){espabs = x;}
     void set_esprel(double x){esprel = x;}
+    virtual ForceFormula formula(){return ForceFormula::NONMAG_NUM1D;}
     ForceNonMagNumeric1D(int n=100);
     ~ForceNonMagNumeric1D();
 };
@@ -235,6 +239,7 @@ public:
     void set_gsl(bool b) {use_gsl = b;}
     void set_mean_rho_min(bool b) {use_mean_rho_min = b;}
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run = true;}
+    virtual ForceFormula formula(){return ForceFormula::NONMAG_NUM3D;}
     ForceNonMagNumeric3D(int n=100);
     ~ForceNonMagNumeric3D();
     void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
@@ -268,6 +273,7 @@ protected:
 public:
     bool magnetized(){return true;}
     void set_smooth_factor(double x){k = x;}
+    virtual ForceFormula formula(){return ForceFormula::MESHKOV;}
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
@@ -342,6 +348,7 @@ public:
     void set_steps(int i) {n_a = i; n_ve = i; first_run = true;}
     void set_grid(int ntr, int nl, int nphi){n_tr = ntr; n_l = nl; n_phi = nphi; first_run_fa = true;}
     void set_mag_only(bool b){mag_only = b;}
+    virtual ForceFormula formula(){return ForceFormula::DSM;}
     virtual void friction_force(int charge_number, int ion_number,
             vector<double>& v_tr, vector<double>& v_l, vector<double>& density,
             EBeam& ebeam, vector<double>& force_tr, vector<double>& force_long);
@@ -434,6 +441,7 @@ public:
 //    void set_gsl(bool b) {use_gsl = b;}
 //    void set_mean_rho_min(bool b) {use_mean_rho_min = b;}
     void set_grid(int nh, int nv, int nl){n_h = nh; n_l = nl; n_v = nv; first_run = true;}
+    virtual ForceFormula formula(){return ForceFormula::NONMAG_NUM3D_MB;}
     virtual void friction_force(int charge_number, int ion_number, vector<double>& v_h, vector<double>& v_v,
                                 vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
                                 vector<double>& force_h, vector<double>& force_v, vector<double>& force_l);
