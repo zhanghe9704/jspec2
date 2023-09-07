@@ -27,9 +27,9 @@ Beam* beam_coasting_new(int charge_number, double mass_number, double kinetic_en
     return new Beam(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, n_particle);
 }
 //
-Lattice* lattice_new(char* filename) {
+Lattice* lattice_new(char* filename, int length) {
    assert(filename && "Error: Invalid filename for lattice!");
-   std::string file(filename);
+   std::string file(filename, length);
    return new Lattice(file);
 }
 
