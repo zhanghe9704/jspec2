@@ -18,21 +18,45 @@ module jspec
         private
         type(c_ptr) :: object = c_null_ptr
     end type Ring
+
+    type, bind(c) :: Cooler
+        private
+        type(c_ptr) :: object = c_null_ptr
+    end type Cooler
+
+    type, bind(c) :: FrictionForceSolver
+        private
+        type(c_ptr) :: object = c_null_ptr
+    end type FrictionForceSolver
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
-        enumerator :: JSPEC_Lattice = 1
-        enumerator :: JSPEC_Ring = 2
+        enumerator :: JSPEC_Lattice 
+        enumerator :: JSPEC_Ring
+        enumerator :: JSPEC_COOELR
+        enumerator :: JSPEC_FRICTION_FORCE_SOLVER
+    end enum
+
+    enum, bind(c)
+        enumerator :: PARKHOMCHUK = 0
+        enumerator :: NONMAG_DERBENEV
+        enumerator :: NONMAG_MESHKOV
+        enumerator :: NONMAG_NUM1D
+        enumerator :: NONMAG_NUM3D
+        enumerator :: MESHKOV
+        enumerator :: DSM
     end enum
 
     interface
 
         ! interface for beam_bunched_new
+        
 
         function beam_bunched_new_c(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, sigma_s, &
             n_particle) bind(c, name="beam_bunched_new")
             use iso_c_binding
-            type(c_ptr) :: beam_bunched_new_c
+            import Beam
+            type(Beam) :: beam_bunched_new_c
             integer(c_int), value :: charge_number
             real(c_double), value :: mass_number
             real(c_double), value :: kinetic_energy
@@ -47,7 +71,8 @@ module jspec
         function beam_coasting_new_c(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, n_particle) &
             bind(c, name="beam_coasting_new")
             use iso_c_binding
-            type(c_ptr) :: beam_coasting_new_c
+            import Beam
+            type(Beam) :: beam_coasting_new_c
             integer(c_int), value :: charge_number
             real(c_double), value :: mass_number
             real(c_double), value :: kinetic_energy
@@ -58,26 +83,54 @@ module jspec
         end function beam_coasting_new_c
 
         function lattice_new_c(filename, length) bind(c, name="lattice_new")
-            import :: c_ptr, c_char, c_int
-
-            type(c_ptr) :: lattice_new_c
+            use iso_c_binding
+            import Lattice
+            type(Lattice) :: lattice_new_c
             character(kind=c_char, len=1), dimension(*), intent(in) :: filename
             integer(kind=c_int), value, intent(in) :: length
         end function lattice_new_c
 
         function ring_new_c(circ, beam_defined) bind(c, name="ring_new")
             use iso_c_binding
-            type(c_ptr) :: ring_new_c
+            import Ring
+            type(Ring) :: ring_new_c
             real(c_double), value :: circ
             type(c_ptr), value :: beam_defined
         end function ring_new_c
 
         function ring_lattice_new_c(lattice_defined, beam_defined) bind(c, name="ring_lattice_new")
             use iso_c_binding
-            type(c_ptr) :: ring_lattice_new_c
+            import Ring
+            type(Ring) :: ring_lattice_new_c
             type(c_ptr), value :: lattice_defined
             type(c_ptr), value :: beam_defined
         end function ring_lattice_new_c
+
+        function cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, &
+            alpha_h, alpha_v, der_disp_h, der_disp_v) bind(c, name="cooler_new")   
+            use iso_c_binding
+            import Cooler
+            type(Cooler) :: cooler_new_c
+            real(c_double), value :: length
+            real(c_double), value :: section_number
+            real(c_double), value :: magnetic_field
+            real(c_double), value :: beta_h
+            real(c_double), value :: beta_v
+            real(c_double), value :: disp_h
+            real(c_double), value :: disp_v
+            real(c_double), value :: alpha_h
+            real(c_double), value :: alpha_v
+            real(c_double), value :: der_disp_h
+            real(c_double), value :: der_disp_v
+        end function cooler_new_c
+
+        function force_solver_new_c(formula, limit) bind(c, name="force_solver_new")
+            use iso_c_binding
+            import FrictionForceSolver
+            type(FrictionForceSolver) :: force_solver_new_c
+            integer(c_int), value :: formula
+            integer(c_int), value :: limit
+        end function force_solver_new_c
 
         ! interface for jspec_delete_beam
         subroutine jspec_delete_beam(ptr) bind(c, name="jspec_delete_beam")
@@ -106,10 +159,60 @@ module jspec
     contains
 
     ! Fortran-friendly wrapper
-        function lattice_new(filename) result(ptr)
+        function create_lattice(filename) result(ptr)
             character(len=*), intent(in) :: filename
-            type(c_ptr) :: ptr
+            type(Lattice) :: ptr
             ptr = lattice_new_c(filename, len_trim(filename))
-        end function lattice_new
+        end function create_lattice
+
+        function create_cooler(length, section_number, magnetic_field, beta_h, beta_v, &
+            disp_h, disp_v, alpha_h, alpha_v, der_disp_h, der_disp_v) result(cool)
+            use, intrinsic :: iso_c_binding, only: c_double
+
+            real(c_double), intent(in) :: length
+            real(c_double), intent(in) :: section_number
+            real(c_double), intent(in) :: magnetic_field
+            real(c_double), intent(in) :: beta_h
+            real(c_double), intent(in) :: beta_v
+            real(c_double), intent(in), optional :: disp_h
+            real(c_double), intent(in), optional :: disp_v
+            real(c_double), intent(in), optional :: alpha_h
+            real(c_double), intent(in), optional :: alpha_v
+            real(c_double), intent(in), optional :: der_disp_h
+            real(c_double), intent(in), optional :: der_disp_v
+
+            type(Cooler) :: cool
+
+            ! Check for optional arguments and assign default values if they are not present
+            if (present(disp_h) .AND. present(alpha_h) .AND. present(der_disp_h)) then
+                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, &
+                                    disp_h, disp_v, alpha_h, alpha_v, der_disp_h, der_disp_v)
+            else if (present(disp_h) .AND. present(alpha_h)) then
+                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, &
+                                    disp_h, disp_v, alpha_h, alpha_v, 0.0_C_DOUBLE, 0.0_C_DOUBLE)
+            else if (present(disp_h)) then
+                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, &
+                                    disp_h, disp_v, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE)
+            else
+                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, & 
+                    0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE)
+            end if
+        end function create_cooler
+
+        function create_force_solver(formula, limit) result(force)
+            use, intrinsic :: iso_c_binding, only: c_int
+
+            integer(c_int), intent(in) :: formula
+            integer(c_int), intent(in), optional :: limit
+
+            type(FrictionForceSolver) :: force
+
+            ! Check for optional arguments and assign default values if they are not present
+             if (present(limit)) then
+                force = force_solver_new_c(formula, limit)
+            else
+                force = force_solver_new_c(formula, 100)
+            end if
+        end function create_force_solver
 
 end module jspec

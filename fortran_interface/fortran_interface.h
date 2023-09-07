@@ -10,7 +10,7 @@
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER};
 
 extern "C" {
 //Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -41,41 +41,40 @@ Ring* ring_lattice_new(Lattice* lattice_defined, Beam* beam_defined) {
    return new Ring(*lattice_defined, *beam_defined);
 }
 
-//Cooler* cooler_new(double length, double section_number, double magnetic_field, double beta_h, double beta_v, double disp_h=0,
-//           double disp_v=0, double alpha_h=0, double alpha_v=0, double der_disp_h=0, double der_disp_v=0) {
-//    return new Cooler(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, alpha_h, alpha_v,
-//                      der_disp_h, der_disp_v);
-//}
+Cooler* cooler_new(double length, double section_number, double magnetic_field, double beta_h, double beta_v, double disp_h=0,
+          double disp_v=0, double alpha_h=0, double alpha_v=0, double der_disp_h=0, double der_disp_v=0) {
+   return new Cooler(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, alpha_h, alpha_v,
+                     der_disp_h, der_disp_v);
+}
 
-//FrictionForceSolver* force_solver_new(ForceFormula formula, int limit=100) {
-//    switch(formula) {
-//         case ForceFormula::PARKHOMCHUK: {
-//            return new ForcePark();
-//         }
-//         case ForceFormula::MESHKOV: {
-//            return new ForceMeshkov();
-//         }
-//         case ForceFormula::NONMAG_MESHKOV: {
-//            return new ForceNonMagMeshkov();
-//         }
-//         case ForceFormula::NONMAG_DERBENEV: {
-//            return new ForceNonMagDerbenev();
-//         }
-//         case ForceFormula::NONMAG_NUM1D: {
-//            assert(limit && "Error: Parameter limit is needed for 1D numerical formula of non-magnetic friction force!");
-//            return new ForceNonMagNumeric1D(limit);
-//         }
-//         case ForceFormula::NONMAG_NUM3D: {
-//            return new ForceNonMagNumeric3D(limit);
-//         }
-//         case ForceFormula::DSM: {
-//            return new ForceDSM();
-//         }
-//         default: {
-//            assert(false&&"WRONG FRICTION FORCE FORMULA SELECTED!");
-//         }
-//    }
-//}
+FrictionForceSolver* force_solver_new(ForceFormula formula, int limit=100) {
+   switch(formula) {
+        case ForceFormula::PARKHOMCHUK: {
+           return new ForcePark();
+        }
+        case ForceFormula::MESHKOV: {
+           return new ForceMeshkov();
+        }
+        case ForceFormula::NONMAG_MESHKOV: {
+           return new ForceNonMagMeshkov();
+        }
+        case ForceFormula::NONMAG_DERBENEV: {
+           return new ForceNonMagDerbenev();
+        }
+        case ForceFormula::NONMAG_NUM1D: {
+           return new ForceNonMagNumeric1D(limit);
+        }
+        case ForceFormula::NONMAG_NUM3D: {
+           return new ForceNonMagNumeric3D(limit);
+        }
+        case ForceFormula::DSM: {
+           return new ForceDSM();
+        }
+        default: {
+           assert(false&&"WRONG FRICTION FORCE FORMULA SELECTED!");
+        }
+   }
+}
 //
 //EBeam* uniform_cylinder_new(double current, double radius) {
 //    return new UniformCylinder(current, radius);
