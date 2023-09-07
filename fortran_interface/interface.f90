@@ -13,10 +13,16 @@ module jspec
         private
         type(c_ptr) :: object = c_null_ptr
     end type Lattice
+
+    type, bind(c) :: Ring
+        private
+        type(c_ptr) :: object = c_null_ptr
+    end type Ring
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
         enumerator :: JSPEC_Lattice = 1
+        enumerator :: JSPEC_Ring = 2
     end enum
 
     interface
@@ -59,6 +65,20 @@ module jspec
             integer(kind=c_int), value, intent(in) :: length
         end function lattice_new_c
 
+        function ring_new_c(circ, beam_defined) bind(c, name="ring_new")
+            use iso_c_binding
+            type(c_ptr) :: ring_new_c
+            real(c_double), value :: circ
+            type(c_ptr), value :: beam_defined
+        end function ring_new_c
+
+        function ring_lattice_new_c(lattice_defined, beam_defined) bind(c, name="ring_lattice_new")
+            use iso_c_binding
+            type(c_ptr) :: ring_lattice_new_c
+            type(c_ptr), value :: lattice_defined
+            type(c_ptr), value :: beam_defined
+        end function ring_lattice_new_c
+
         ! interface for jspec_delete_beam
         subroutine jspec_delete_beam(ptr) bind(c, name="jspec_delete_beam")
             use iso_c_binding
@@ -77,6 +97,11 @@ module jspec
         procedure beam_coasting_new_c
         procedure beam_bunched_new_c
     end interface create_beam
+
+    interface create_ring
+        procedure ring_new_c
+        procedure ring_lattice_new_c
+    end interface create_ring
 
     contains
 

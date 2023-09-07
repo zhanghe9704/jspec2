@@ -10,7 +10,7 @@
 
 #include <string>
 
-enum class JSPEC_Class {BEAM};
+enum class JSPEC_Class {BEAM, LATTICE, RING};
 
 extern "C" {
 //Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -33,14 +33,14 @@ Lattice* lattice_new(char* filename, int length) {
    return new Lattice(file);
 }
 
-//Ring* ring_new(double circ, Beam* beam_defined) {
-//    return new Ring(circ, *beam_defined);
-//}
-//
-//Ring* ring_lattice_new(Lattice* lattice_defined, Beam* beam_defined) {
-//    return new Ring(*lattice_defined, *beam_defined);
-//}
-//
+Ring* ring_new(double circ, Beam* beam_defined) {
+   return new Ring(circ, *beam_defined);
+}
+
+Ring* ring_lattice_new(Lattice* lattice_defined, Beam* beam_defined) {
+   return new Ring(*lattice_defined, *beam_defined);
+}
+
 //Cooler* cooler_new(double length, double section_number, double magnetic_field, double beta_h, double beta_v, double disp_h=0,
 //           double disp_v=0, double alpha_h=0, double alpha_v=0, double der_disp_h=0, double der_disp_v=0) {
 //    return new Cooler(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, alpha_h, alpha_v,
