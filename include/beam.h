@@ -209,6 +209,7 @@ public:
     virtual void updates(){};
     void generate_samples(bool b){generate_samples_ = b;}
     bool generate_samples(){return generate_samples_;}
+    virtual ~EBeam() = 0;
 
 //    EBeam& get_samples(){return *samples;}
 };
