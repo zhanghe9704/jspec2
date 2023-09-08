@@ -10,7 +10,7 @@
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM};
 
 extern "C" {
 //Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -76,35 +76,35 @@ FrictionForceSolver* force_solver_new(ForceFormula formula, int limit=100) {
    }
 }
 //
-//EBeam* uniform_cylinder_new(double current, double radius) {
-//    return new UniformCylinder(current, radius);
-//}
-//
-//EBeam* uniform_hollow_new(double current, double in_radius, double out_radius) {
-//    return new UniformHollow(current, in_radius, out_radius);
-//}
-//
-//EBeam* uniform_hollow_bunch_new(double current, double in_radius, double out_radius, double length) {
-//    return new UniformHollowBunch(current, in_radius, out_radius, length);
-//}
-//
-//EBeam* uniform_bunch_new(double current, double radius, double length) {
-//    return new UniformBunch(current, radius, length);
-//}
-//
-//EBeam* elliptic_uniform_bunch_new(double current, double rh, double rv, double length) {
-//    return new EllipticUniformBunch(current, rh, rv, length);
-//}
-//
-//EBeam* gaussian_bunch_new(double n_electron, double sigma_x, double sigma_y, double sigma_s) {
-//    return new GaussianBunch(n_electron, sigma_x, sigma_y, sigma_s);
-//}
-//
-//EBeam* particle_bunch_new(double n_electron, char* filename, double length = 0) {
-//    assert(filename && "Error: Invalid file name for particle bunch electron beam!");
-//    std::string file(filename);
-//    return new ParticleBunch(n_electron, file, length);
-//}
+EBeam* uniform_cylinder_new(double current, double radius) {
+   return new UniformCylinder(current, radius);
+}
+
+EBeam* uniform_hollow_new(double current, double in_radius, double out_radius) {
+   return new UniformHollow(current, in_radius, out_radius);
+}
+
+EBeam* uniform_hollow_bunch_new(double current, double in_radius, double out_radius, double length) {
+   return new UniformHollowBunch(current, in_radius, out_radius, length);
+}
+
+EBeam* uniform_bunch_new(double current, double radius, double length) {
+   return new UniformBunch(current, radius, length);
+}
+
+EBeam* elliptic_uniform_bunch_new(double current, double rh, double rv, double length) {
+   return new EllipticUniformBunch(current, rh, rv, length);
+}
+
+EBeam* gaussian_bunch_new(double n_electron, double sigma_x, double sigma_y, double sigma_s) {
+   return new GaussianBunch(n_electron, sigma_x, sigma_y, sigma_s);
+}
+
+EBeam* particle_bunch_new(double n_electron, char* filename, int str_length, double length = 0) {
+   assert(filename && "Error: Invalid file name for particle bunch electron beam!");
+   std::string file(filename, str_length);
+   return new ParticleBunch(n_electron, file, length);
+}
 
 //void jspec_delete(Ions* ptr) {delete ptr;}
 void jspec_delete_beam(Beam* ptr)  {delete ptr;}

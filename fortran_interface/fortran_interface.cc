@@ -22,6 +22,10 @@ void jspec_delete(void* ptr, JSPEC_Class name) {
         delete static_cast<FrictionForceSolver*>(ptr);
         break;           
     }
+    case JSPEC_Class::EBEAM:{
+        delete static_cast<EBeam*>(ptr);
+        break;           
+    }
     default:
         break;
     }

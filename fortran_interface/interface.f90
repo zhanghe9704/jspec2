@@ -28,6 +28,11 @@ module jspec
         private
         type(c_ptr) :: object = c_null_ptr
     end type FrictionForceSolver
+
+    type, bind(c) :: EBeam
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type EBeam
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
@@ -35,6 +40,7 @@ module jspec
         enumerator :: JSPEC_Ring
         enumerator :: JSPEC_COOELR
         enumerator :: JSPEC_FRICTION_FORCE_SOLVER
+        enumerator :: JSPEC_EBEAM
     end enum
 
     enum, bind(c)
@@ -45,6 +51,16 @@ module jspec
         enumerator :: NONMAG_NUM3D
         enumerator :: MESHKOV
         enumerator :: DSM
+    end enum
+
+    enum, bind(c)
+        enumerator :: EBEAM_UNIFORM_CYLINDER = 0
+        enumerator :: EBEAM_UNIFORM_HOLLOW
+        enumerator :: EBEAM_UNIFORM_HOLLOW_BUNCH
+        enumerator :: EBEAM_UNIFORM_BUNCH
+        enumerator :: EBEAM_ELLIPTIC_UNIFORM_BUNCH
+        enumerator :: EBEAM_GAUSSIAN_BUNCH
+        enumerator :: EBEAM_PARTICLE_BUNCH
     end enum
 
     interface
@@ -132,6 +148,72 @@ module jspec
             integer(c_int), value :: limit
         end function force_solver_new_c
 
+        function create_uniform_cylinder(current, radius) bind(c, name="uniform_cylinder_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_uniform_cylinder
+            real(c_double), value :: current
+            real(c_double), value :: radius
+        end function create_uniform_cylinder
+
+        function create_uniform_hollow(current, in_radius, out_radius) bind(c, name="uniform_hollow_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_uniform_hollow
+            real(c_double), value :: current
+            real(c_double), value :: in_radius
+            real(c_double), value :: out_radius
+        end function create_uniform_hollow
+
+        function create_uniform_hollow_bunch(current, in_radius, out_radius, length) bind(c, name="uniform_hollow_bunch_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_uniform_hollow_bunch
+            real(c_double), value :: current
+            real(c_double), value :: in_radius
+            real(c_double), value :: out_radius
+            real(c_double), value :: length
+        end function create_uniform_hollow_bunch
+
+        function create_uniform_bunch(current, radius, length) bind(c, name="uniform_bunch_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_uniform_bunch
+            real(c_double), value :: current
+            real(c_double), value :: radius
+            real(c_double), value :: length
+        end function create_uniform_bunch
+
+        function create_elliptic_uniform_bunch(current, rh, rv, length) bind(c, name="elliptic_uniform_bunch_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_elliptic_uniform_bunch
+            real(c_double), value :: current
+            real(c_double), value :: rh
+            real(c_double), value :: rv
+            real(c_double), value :: length
+        end function create_elliptic_uniform_bunch
+
+        function create_gaussian_bunch(n_electron, sigma_x, sigma_y, sigma_s) bind(c, name="gaussian_bunch_new")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: create_gaussian_bunch
+            real(c_double), value :: n_electron
+            real(c_double), value :: sigma_x
+            real(c_double), value :: sigma_y
+            real(c_double), value :: sigma_s
+        end function create_gaussian_bunch
+
+        function particle_bunch_new_c(n_electron, filename, str_length, length) bind(c, name="particle_bunch_new_fortran")
+            use iso_c_binding
+            import EBeam
+            type(EBeam) :: particle_bunch_new_c
+            integer(c_int), value :: str_length
+            real(c_double), value :: n_electron
+            character(kind=c_char, len=1), dimension(*), intent(in) :: filename
+            real(c_double), value :: length
+        end function particle_bunch_new_c
+
         ! interface for jspec_delete_beam
         subroutine jspec_delete_beam(ptr) bind(c, name="jspec_delete_beam")
             use iso_c_binding
@@ -215,4 +297,17 @@ module jspec
             end if
         end function create_force_solver
 
+        function create_particle_bunch(n_electron, filename, length) result(e_beam)
+            use iso_c_binding
+            type(EBeam) :: e_beam
+            real(c_double), value :: n_electron
+            character(len=*), intent(in) :: filename
+            real(c_double), intent(in), optional :: length
+
+            if (present(length)) then
+                e_beam = particle_bunch_new_c(n_electron, filename, len_trim(filename), 0.0_C_DOUBLE)
+            else
+                e_beam = particle_bunch_new_c(n_electron, filename, len_trim(filename), length)
+            end if
+        end function create_particle_bunch
 end module jspec
