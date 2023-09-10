@@ -26,6 +26,10 @@ void jspec_delete(void* ptr, JSPEC_Class name) {
         delete static_cast<EBeam*>(ptr);
         break;           
     }
+    case JSPEC_Class::IONS:{
+        delete static_cast<Ions_MonteCarlo*>(ptr);
+        break;           
+    }
     default:
         break;
     }

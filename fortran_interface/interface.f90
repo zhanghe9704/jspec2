@@ -33,6 +33,11 @@ module jspec
         private
         type(c_ptr) :: obj_ptr = c_null_ptr
     end type EBeam
+
+    type, bind(c) :: IonSamples
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type IonSamples
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
@@ -53,21 +58,9 @@ module jspec
         enumerator :: DSM
     end enum
 
-    enum, bind(c)
-        enumerator :: EBEAM_UNIFORM_CYLINDER = 0
-        enumerator :: EBEAM_UNIFORM_HOLLOW
-        enumerator :: EBEAM_UNIFORM_HOLLOW_BUNCH
-        enumerator :: EBEAM_UNIFORM_BUNCH
-        enumerator :: EBEAM_ELLIPTIC_UNIFORM_BUNCH
-        enumerator :: EBEAM_GAUSSIAN_BUNCH
-        enumerator :: EBEAM_PARTICLE_BUNCH
-    end enum
-
     interface
 
         ! interface for beam_bunched_new
-        
-
         function beam_bunched_new_c(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, sigma_s, &
             n_particle) bind(c, name="beam_bunched_new")
             use iso_c_binding
@@ -214,11 +207,12 @@ module jspec
             real(c_double), value :: length
         end function particle_bunch_new_c
 
-        ! interface for jspec_delete_beam
-        subroutine jspec_delete_beam(ptr) bind(c, name="jspec_delete_beam")
+        function create_ions(n) bind(c, name="ions_montecarlo_new")
             use iso_c_binding
-            type(c_ptr), value :: ptr
-        end subroutine jspec_delete_beam
+            import IonSamples
+            type(IonSamples) :: create_ions  ! Return a Fortran representation of the C++ object
+            integer(c_int), value :: n
+        end function create_ions
 
         subroutine jspec_delete(ptr, name) bind(c, name="jspec_delete")
             use iso_c_binding

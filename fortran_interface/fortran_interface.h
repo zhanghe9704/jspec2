@@ -10,12 +10,12 @@
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS};
 
 extern "C" {
-//Ions_MonteCarlo* ions_montecarlo_new(int n) {
-//    return new Ions_MonteCarlo(n);
-//}
+Ions_MonteCarlo* ions_montecarlo_new(int n) {
+   return new Ions_MonteCarlo(n);
+}
 
 Beam* beam_bunched_new(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny,
                        double dp_p, double sigma_s, double n_particle) {
