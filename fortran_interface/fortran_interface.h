@@ -4,13 +4,14 @@
 
 #include "beam.h"
 #include "cooler.h"
+#include "ecooling.h"
 #include "force.h"
 #include "ions.h"
 #include "ring.h"
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS, ECOOLRATE};
 
 extern "C" {
 Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -106,15 +107,22 @@ EBeam* particle_bunch_new(double n_electron, char* filename, int str_length, dou
    return new ParticleBunch(n_electron, file, length);
 }
 
-//void jspec_delete(Ions* ptr) {delete ptr;}
-void jspec_delete_beam(Beam* ptr)  {delete ptr;}
-//void jspec_delete(FrictionForceSolver* ptr)  {delete ptr;}
-//void jspec_delete(Lattice* ptr)  {delete ptr;}
-//void jspec_delete(Ring* ptr)  {delete ptr;}
-//void jspec_delete(Cooler* ptr)  {delete ptr;}
-//void jspec_delete(EBeam* ptr)  {delete ptr;}
+ECoolRate* ecool_rate_calculator_new() {
+    return new ECoolRate();
+}
 
 void jspec_delete(void* ptr, JSPEC_Class name);
+
+void ecool_rate1(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, int n_sample, Cooler &cooler, 
+           EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
+    ecool_obj->ecool_rate(force, ion, n_sample, cooler, ebeam, ring, rx, ry, rs);
+}
+
+void ecool_rate2(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler, 
+           EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
+    ecool_obj->ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
+}
+
 
 
 }

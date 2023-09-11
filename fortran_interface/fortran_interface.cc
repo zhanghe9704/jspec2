@@ -30,6 +30,10 @@ void jspec_delete(void* ptr, JSPEC_Class name) {
         delete static_cast<Ions_MonteCarlo*>(ptr);
         break;           
     }
+    case JSPEC_Class::ECOOLRATE:{
+        delete static_cast<ECoolRate*>(ptr);
+        break;           
+    }
     default:
         break;
     }

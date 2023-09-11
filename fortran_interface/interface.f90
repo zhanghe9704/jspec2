@@ -38,6 +38,11 @@ module jspec
         private
         type(c_ptr) :: obj_ptr = c_null_ptr
     end type IonSamples
+
+    type, bind(c) :: ECoolRate
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type ECoolRate
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
@@ -46,6 +51,8 @@ module jspec
         enumerator :: JSPEC_COOELR
         enumerator :: JSPEC_FRICTION_FORCE_SOLVER
         enumerator :: JSPEC_EBEAM
+        enumerator :: JSPEC_IONS
+        enumerator :: JSPEC_ECOOLRATE
     end enum
 
     enum, bind(c)
@@ -101,18 +108,18 @@ module jspec
 
         function ring_new_c(circ, beam_defined) bind(c, name="ring_new")
             use iso_c_binding
-            import Ring
+            import Ring, Beam
             type(Ring) :: ring_new_c
             real(c_double), value :: circ
-            type(c_ptr), value :: beam_defined
+            type(Beam), value :: beam_defined
         end function ring_new_c
 
         function ring_lattice_new_c(lattice_defined, beam_defined) bind(c, name="ring_lattice_new")
             use iso_c_binding
-            import Ring
+            import Ring, Beam
             type(Ring) :: ring_lattice_new_c
             type(c_ptr), value :: lattice_defined
-            type(c_ptr), value :: beam_defined
+            type(Beam), value :: beam_defined
         end function ring_lattice_new_c
 
         function cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, &
@@ -197,7 +204,7 @@ module jspec
             real(c_double), value :: sigma_s
         end function create_gaussian_bunch
 
-        function particle_bunch_new_c(n_electron, filename, str_length, length) bind(c, name="particle_bunch_new_fortran")
+        function particle_bunch_new_c(n_electron, filename, str_length, length) bind(c, name="particle_bunch_new")
             use iso_c_binding
             import EBeam
             type(EBeam) :: particle_bunch_new_c
@@ -214,11 +221,43 @@ module jspec
             integer(c_int), value :: n
         end function create_ions
 
+        function create_ecool_rate_calculator() bind(c, name="ecool_rate_calculator_new")
+            use iso_c_binding
+            import ECoolRate
+            type(ECoolRate) :: create_ecool_rate_calculator
+        end function create_ecool_rate_calculator
+
         subroutine jspec_delete(ptr, name) bind(c, name="jspec_delete")
             use iso_c_binding
             type(c_ptr), value :: ptr
             integer(c_int), value :: name
         end subroutine jspec_delete
+
+        subroutine ecool_rate1(ecool_obj, force, ion, n_sample, e_cooler, e_beam, ion_ring, rx, ry, rs) bind(c, name="ecool_rate1")
+            use iso_c_binding
+            import ECoolRate, FrictionForceSolver, Beam, Cooler, EBeam, Ring
+            type(ECoolRate), intent(in) :: ecool_obj
+            type(FrictionForceSolver), intent(in) :: force
+            type(Beam), intent(in) :: ion
+            type(Cooler), intent(in) :: e_cooler
+            type(EBeam), intent(in) :: e_beam
+            type(Ring), intent(in) :: ion_ring
+            integer(c_int), value :: n_sample
+            real(c_double) :: rx, ry, rs
+        end subroutine ecool_rate1
+
+        subroutine ecool_rate2(ecool_obj, force, ion, ptcl, e_cooler, e_beam, ion_ring, rx, ry, rs) bind(c, name="ecool_rate2")
+            use iso_c_binding
+            import ECoolRate, FrictionForceSolver, Beam, IonSamples, Cooler, EBeam, Ring
+            type(ECoolRate), intent(in) :: ecool_obj
+            type(FrictionForceSolver), intent(in) :: force
+            type(Beam), intent(in) :: ion
+            type(IonSamples), intent(in) :: ptcl
+            type(Cooler), intent(in) :: e_cooler
+            type(EBeam), intent(in) :: e_beam
+            type(Ring), intent(in) :: ion_ring
+            real(c_double) :: rx, ry, rs
+        end subroutine ecool_rate2
     end interface
 
     ! Generic interface
@@ -231,6 +270,19 @@ module jspec
         procedure ring_new_c
         procedure ring_lattice_new_c
     end interface create_ring
+
+    interface ecool_rate
+        procedure ecool_rate1
+        procedure ecool_rate2
+    end interface ecool_rate
+
+    ! interface 
+    !     function create_lattice(filename) result(ptr)
+    !         import Lattice
+    !         character(len=*), intent(in) :: filename
+    !         type(Lattice) :: ptr
+    !     end function create_lattice
+    ! end interface
 
     contains
 
