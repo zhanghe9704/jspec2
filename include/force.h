@@ -446,7 +446,7 @@ public:
                                 vector<double>& v_l, vector<double>& density, EBeam& ebeam, Cooler& cooler,
                                 vector<double>& force_h, vector<double>& force_v, vector<double>& force_l);
     ForceNonMagNumeric3DBlaskiewicz(int n=100){};
-    ~ForceNonMagNumeric3DBlaskiewicz();
+//    ~ForceNonMagNumeric3DBlaskiewicz();
 };
 
 ////gsl function wrapper for member functions in class.
