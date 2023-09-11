@@ -23,7 +23,7 @@ $(FORTRAN_MODULES): $(FORTRAN_OBJECTS)
 $(FORTRAN_OBJECTS): interface.f90 $(LIBRARY)
 	$(FC) -o $@ -c $< $(LDFLAGS) $(FCFLAGS) -ljspec
 
-$(LIBRARY): $(CPP_OBJECTS)
+$(LIBRARY): $(CPP_OBJECTS) $(FORTRAN_OBJECTS)
 	ar rcs $@ $^
 
 %.o: %.cpp
