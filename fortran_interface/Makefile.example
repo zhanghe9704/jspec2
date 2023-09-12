@@ -1,0 +1,22 @@
+# Compiler and flags
+FC = gfortran
+FFLAGS = -c -g -I.  # Assuming jspec.mod is in the current directory
+LDFLAGS = -L. -ljspec -lstdc++  -lgsl
+
+# Target executable
+TARGET = example
+
+# Source and object files
+SRC = example.f90
+OBJ = $(SRC:.f90=.o)
+
+$(TARGET): $(OBJ)
+	$(FC) -o $@ $^ $(LDFLAGS)
+
+%.o: %.f90
+	$(FC) $(FFLAGS) $<
+
+clean:
+	rm -f $(OBJ) $(TARGET)
+
+.PHONY: clean
