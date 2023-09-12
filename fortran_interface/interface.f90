@@ -116,9 +116,9 @@ module jspec
 
         function ring_lattice_new_c(lattice_defined, beam_defined) bind(c, name="ring_lattice_new")
             use iso_c_binding
-            import Ring, Beam
+            import Ring, Beam, Lattice
             type(Ring) :: ring_lattice_new_c
-            type(c_ptr), value :: lattice_defined
+            type(Lattice), value :: lattice_defined
             type(Beam), value :: beam_defined
         end function ring_lattice_new_c
 
