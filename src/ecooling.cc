@@ -59,6 +59,19 @@ void ECoolRate::space_to_dynamic(int n_sample, Beam &ion, Ions &ion_sample) {
             v_y[i] = yp[i]*v;
         }
     }
+
+    std::cout<<"Space to dynamic: "<<std::endl;
+    std::cout<<"v: "<<v<<std::endl;
+    std::cout<<"dp_p: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<dp_p[i]<<' ';
+    }
+    std::cout<<std::endl;
+    std::cout<<"v_long: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_long[i]<<' ';
+    }
+    std::cout<<std::endl;
 }
 
 void ECoolRate::init_scratch(int n_sample) {
@@ -106,17 +119,26 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
     if(!iszero(d_beta, 1e-6)) cv_l = d_beta*k_c;
     if(!iszero(ebeam.cv_l(), 1e-6)) cv_l += ebeam.cv_l();
 
+    std::cout<<"beta_e: "<<beta_e<<' '<<"beta_i: "<<beta_i<<' '<<"d_beta: "<<d_beta<<std::endl;
+    std::cout<<"cv_l: "<<cv_l<<std::endl;
     if(!iszero(cv_l, 1e-6)) {
         for(auto& v: v_long) {
             v -= cv_l;
         }
     }
+    std::cout<<"v_long::: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_long[i]<<' ';
+    }
+    std::cout<<std::endl;
+
     if(!symmetry_vtr) {
         if(ebeam.velocity() == Velocity::VARY) {
             double gamma_e = ebeam.gamma();
             vector<double>& v_avg_l = ebeam.get_v(EBeamV::V_AVG_L);
             vector<double>& v_avg_h = ebeam.get_v(EBeamV::V_AVG_X);
             vector<double>& v_avg_v = ebeam.get_v(EBeamV::V_AVG_Y);
+
             for(int i=0; i<n_sample; ++i){
                 v_long.at(i) -= v_avg_l.at(i);
 //                v_tr.at(i) -= v_avg_h.at(i)*gamma_e; //Transfer to beam frame.
@@ -143,7 +165,45 @@ void ECoolRate::force(int n_sample, Beam &ion, EBeam &ebeam, Cooler &cooler, Fri
             v_long.at(i) -= v_avg_l.at(i);
         }
     }
+    std::cout<<"v_long:::: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_long[i]<<' ';
+    }
+    std::cout<<std::endl;
+
     force_solver.friction_force(ion.charge_number(), n_sample, v_tr, v_long, ne, ebeam, force_x, force_z);
+
+    std::cout<<"friction force: "<<std::endl;
+    std::cout<<"charge: "<<ion.charge_number()<<std::endl;
+    std::cout<<"ne: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<ne[i]<<' ';
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"v_tr: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_tr[i]<<' ';
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"v_long: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_long[i]<<' ';
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"force_x: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<force_x[i]<<' ';
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"force_z: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<force_z[i]<<' ';
+    }
+    std::cout<<std::endl;
 
     if(dual_force_solver){
         force_solver_l->set_mag_field(cooler.magnetic_field());
@@ -238,6 +298,17 @@ void ECoolRate::force_distribute(int n_sample, Beam &ion, Ions &ion_sample) {
         force_y[i] = yp[i]!=0?force_x[i]*yp[i]*v0/v_tr[i]:0;
         force_x[i] = xp[i]!=0?force_x[i]*xp[i]*v0/v_tr[i]:0;
     }
+
+    std::cout<<"force_x: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<force_x[i]<<' ';
+    }
+    std::cout<<std::endl;
+    std::cout<<"force_y: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<force_y[i]<<' ';
+    }
+    std::cout<<std::endl;
 }
 
 void ECoolRate::apply_kick(int n_sample, Beam &ion, Ions& ion_sample) {
@@ -305,12 +376,25 @@ void ECoolRate::ecool_ions(FrictionForceSolver &force_solver, Beam &ion, Ions &i
         }
     }
 
+    std::cout<<"n_sample: "<<n_sample<<std::endl;
+    std::cout<<"density: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<ne[i]<<' ';
+    }
+    std::cout<<std::endl;
+
 
     //Time through the cooler
     t_cooler_ = cooler.length()/(ion.beta()*k_c);
 
     //Transfer into e- beam frame
     beam_frame(n_sample, ebeam.gamma());
+
+    std::cout<<"v_long:: ";
+    for(int i=0; i<20; ++i) {
+        std::cout<<v_long[i]<<' ';
+    }
+    std::cout<<std::endl;
 
 
     //Calculate friction force
@@ -356,6 +440,10 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     symmetry_vtr = ebeam.symmetry_vtr();
     if(n_sample>scratch_size) init_scratch(n_sample);
     n_piece = cooler.piece_number();
+
+    std::cout<<"ECoolRate: "<<std::endl
+        <<"n_smaple: "<<n_sample<<std::endl
+        <<"n_piece: "<<n_piece<<std::endl;
 
 //    if(ebeam.disp() && ebeam.shape()!=Shape::BLASKIEWICZ) {
 //        electron_density(ion_sample,*ebeam.samples);
@@ -414,6 +502,7 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     //Original emittance
     double emit_x0, emit_y0, emit_z0;
     ion_sample.emit(emit_x0, emit_y0, emit_z0);
+    std::cout<<"initial emit: "<<emit_x0<<' '<<emit_y0<<' '<<emit_z0<<std::endl;
 
     if (n_piece==0)
         ecool_ions(force_solver, ion, ion_sample, cooler, ebeam, ring);
@@ -454,6 +543,8 @@ void ECoolRate::ecool_rate(FrictionForceSolver &force_solver, Beam &ion,
     adjust_disp_inv(t.disp_dy, yp_bet, dp_p, yp, n_sample);
 
     ion_sample.emit(x_bet, xp_bet, y_bet, yp_bet, dp_p, ion_sample.cdnt(Phase::DS), emit_x, emit_y, emit_z);
+
+    std::cout<<"emit: "<<emit_x<<' '<<emit_y<<' '<<emit_z<<std::endl;
 
     rate_x = emit_x/emit_x0-1;
     rate_y = emit_y/emit_y0-1;

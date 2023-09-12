@@ -35,8 +35,8 @@ program main
     real(c_double) :: n_section = 1
     real(c_double) :: mag_field = 1
     real(c_double) :: twiss_beta = 100
-    real(c_double) :: dx = 1.8
-    real(c_double) :: dy = 0.7
+    ! real(c_double) :: dx = 1.8
+    ! real(c_double) :: dy = 0.7
 
     real(8) :: gamma, beta, sigma_x, sigma_y
     real(c_double) :: ne = 7.39d9
@@ -53,6 +53,9 @@ program main
     sigma_x = sqrt(twiss_beta*ex/(beta*gamma))
     sigma_y = sqrt(twiss_beta*ey/(beta*gamma))
 
+    print*, "beta: ", beta
+    print*, "gamma: ", gamma
+
 
 
     
@@ -66,7 +69,8 @@ program main
     my_ring = create_ring(my_lattice, my_beam)
 
     ! Create a cooler
-    my_cooler = create_cooler(length, n_section, mag_field, twiss_beta, twiss_beta, dx, dy)
+    my_cooler = create_cooler(length, n_section, mag_field, twiss_beta, twiss_beta)
+    ! my_cooler = create_cooler(length, n_section, mag_field, twiss_beta, twiss_beta, dx, dy)
 
     ! Create friction force solver
     my_force_solver = create_force_solver(PARKHOMCHUK)
@@ -74,26 +78,26 @@ program main
     ! Create electron beam with Gaussian distribution
     my_ebeam = create_gaussian_bunch(ne, sigma_x, sigma_y, ds)
 
-    address = transfer(ebeam_get_ptr(my_ebeam), address)
-    print *, "Address (c_ptr): "
-    write(*, '(Z16)') address
+    ! address = transfer(ebeam_get_ptr(my_ebeam), address)
+    ! print *, "Address (c_ptr): "
+    ! write(*, '(Z16)') address
     ! print *, c_loc(ebeam_get_ptr(my_ebeam))
 
     call ebeam_set_gamma(my_ebeam, gamma)
-    ! call ebeam_set_temperature(my_ebeam, tmp_tr, tmp_l)
+    call ebeam_set_temperature(my_ebeam, tmp_tr, tmp_l)
 
     ! ! Call ecool_rate function using the created objects and some example values for rx, ry, and rs
     ! ! rx = 1.0d-3
     ! ! ry = 1.0d-3
     ! ! rs = 1.0d-2
-    ! rate_ec = create_ecool_rate_calculator()
+    rate_ec = create_ecool_rate_calculator()
 
     
-    ! call ecool_rate(rate_ec, my_force_solver, my_beam, n_sample, my_cooler, my_ebeam, my_ring, rx, ry, rs)
+    call ecool_rate(rate_ec, my_force_solver, my_beam, n_sample, my_cooler, my_ebeam, my_ring, rx, ry, rs)
 
-    ! print *, 'Rx:', rx
-    ! print *, 'Ry:', ry
-    ! print *, 'Rs:', rs
+    print *, 'Rx:', rx
+    print *, 'Ry:', ry
+    print *, 'Rs:', rs
 
     ! Clean up: One might want to call jspec_delete for the created objects to free the memory (if required by the underlying C++ library)
     ! call jspec_delete(c_loc(my_beam%object), JSPEC_Beam)

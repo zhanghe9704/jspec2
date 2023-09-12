@@ -236,41 +236,41 @@ module jspec
         subroutine ecool_rate1(ecool_obj, force, ion, n_sample, e_cooler, e_beam, ion_ring, rx, ry, rs) bind(c, name="ecool_rate1")
             use iso_c_binding
             import ECoolRate, FrictionForceSolver, Beam, Cooler, EBeam, Ring
-            type(ECoolRate), intent(in) :: ecool_obj
-            type(FrictionForceSolver), intent(in) :: force
-            type(Beam), intent(in) :: ion
-            type(Cooler), intent(in) :: e_cooler
-            type(EBeam), intent(in) :: e_beam
-            type(Ring), intent(in) :: ion_ring
+            type(ECoolRate), intent(in), value :: ecool_obj
+            type(FrictionForceSolver), intent(in), value :: force
+            type(Beam), intent(in), value :: ion
+            type(Cooler), intent(in), value :: e_cooler
+            type(EBeam), intent(in), value :: e_beam
+            type(Ring), intent(in), value :: ion_ring
             integer(c_int), value :: n_sample
-            real(c_double) :: rx, ry, rs
+            real(c_double), intent(inout) :: rx, ry, rs
         end subroutine ecool_rate1
 
         subroutine ecool_rate2(ecool_obj, force, ion, ptcl, e_cooler, e_beam, ion_ring, rx, ry, rs) bind(c, name="ecool_rate2")
             use iso_c_binding
             import ECoolRate, FrictionForceSolver, Beam, IonSamples, Cooler, EBeam, Ring
-            type(ECoolRate), intent(in) :: ecool_obj
-            type(FrictionForceSolver), intent(in) :: force
-            type(Beam), intent(in) :: ion
-            type(IonSamples), intent(in) :: ptcl
-            type(Cooler), intent(in) :: e_cooler
-            type(EBeam), intent(in) :: e_beam
-            type(Ring), intent(in) :: ion_ring
-            real(c_double) :: rx, ry, rs
+            type(ECoolRate), intent(in), value :: ecool_obj
+            type(FrictionForceSolver), intent(in), value :: force
+            type(Beam), intent(in), value :: ion
+            type(IonSamples), intent(in), value :: ptcl
+            type(Cooler), intent(in), value :: e_cooler
+            type(EBeam), intent(in), value :: e_beam
+            type(Ring), intent(in), value :: ion_ring
+            real(c_double), intent(inout) :: rx, ry, rs
         end subroutine ecool_rate2
 
         subroutine ebeam_set_gamma(ebeam_ptr, gamma) bind(C, name="ebeam_set_gamma")
             use iso_c_binding
             import EBeam
             type(EBeam), intent(in), value :: ebeam_ptr
-            real(c_double), intent(in) :: gamma
+            real(c_double), intent(in), value :: gamma
         end subroutine ebeam_set_gamma
     
         subroutine ebeam_set_temperature(ebeam_ptr, tr, tl) bind(C, name="ebeam_set_temperature")
             use iso_c_binding
             import EBeam
             type(EBeam), intent(in), value :: ebeam_ptr
-            real(c_double), intent(in) :: tr, tl
+            real(c_double), intent(in), value :: tr, tl
         end subroutine ebeam_set_temperature
     end interface
 
