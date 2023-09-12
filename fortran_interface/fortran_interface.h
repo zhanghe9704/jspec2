@@ -98,7 +98,9 @@ EBeam* elliptic_uniform_bunch_new(double current, double rh, double rv, double l
 }
 
 EBeam* gaussian_bunch_new(double n_electron, double sigma_x, double sigma_y, double sigma_s) {
-   return new GaussianBunch(n_electron, sigma_x, sigma_y, sigma_s);
+   auto ptr = new GaussianBunch(n_electron, sigma_x, sigma_y, sigma_s);
+   std::cout<<ptr<<std::endl;
+   return ptr;
 }
 
 EBeam* particle_bunch_new(double n_electron, char* filename, int str_length, double length = 0) {
@@ -123,7 +125,14 @@ void ecool_rate2(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, Io
     ecool_obj->ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
 }
 
+void ebeam_set_gamma(EBeam* ebeam, double gamma) {
+   std::cout<< ebeam << std::endl;
+   ebeam->set_gamma(gamma);
+}
 
+void ebeam_set_temperature(EBeam* ebeam, double tr, double tl) {
+   ebeam->set_tpr(tr, tl);
+}
 
 }
 

@@ -258,6 +258,20 @@ module jspec
             type(Ring), intent(in) :: ion_ring
             real(c_double) :: rx, ry, rs
         end subroutine ecool_rate2
+
+        subroutine ebeam_set_gamma(ebeam_ptr, gamma) bind(C, name="ebeam_set_gamma")
+            use iso_c_binding
+            import EBeam
+            type(EBeam), intent(in), value :: ebeam_ptr
+            real(c_double), intent(in) :: gamma
+        end subroutine ebeam_set_gamma
+    
+        subroutine ebeam_set_temperature(ebeam_ptr, tr, tl) bind(C, name="ebeam_set_temperature")
+            use iso_c_binding
+            import EBeam
+            type(EBeam), intent(in), value :: ebeam_ptr
+            real(c_double), intent(in) :: tr, tl
+        end subroutine ebeam_set_temperature
     end interface
 
     ! Generic interface
@@ -356,4 +370,10 @@ module jspec
                 e_beam = particle_bunch_new_c(n_electron, filename, len_trim(filename), length)
             end if
         end function create_particle_bunch
+
+        function ebeam_get_ptr(e) result(ptr)
+            type(EBeam), intent(in) :: e
+            type(c_ptr) :: ptr
+            ptr = e%obj_ptr
+        end function ebeam_get_ptr
 end module jspec
