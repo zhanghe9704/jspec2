@@ -20,8 +20,8 @@ all: $(LIBRARY) $(FORTRAN_OBJECTS) $(FORTRAN_MODULES)
 
 $(FORTRAN_MODULES): $(FORTRAN_OBJECTS)
 
-$(FORTRAN_OBJECTS): interface.f90 $(LIBRARY)
-	$(FC) -o $@ -c $< $(LDFLAGS) $(FCFLAGS) -ljspec
+$(FORTRAN_OBJECTS): interface.f90
+	$(FC) -o $@ -c $< $(LDFLAGS) $(FCFLAGS)
 
 $(LIBRARY): $(CPP_OBJECTS) $(FORTRAN_OBJECTS)
 	ar rcs $@ $^
