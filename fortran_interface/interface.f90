@@ -290,14 +290,6 @@ module jspec
         procedure ecool_rate2
     end interface ecool_rate
 
-    ! interface 
-    !     function create_lattice(filename) result(ptr)
-    !         import Lattice
-    !         character(len=*), intent(in) :: filename
-    !         type(Lattice) :: ptr
-    !     end function create_lattice
-    ! end interface
-
     contains
 
     ! Fortran-friendly wrapper

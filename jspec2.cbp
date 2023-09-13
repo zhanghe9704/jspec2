@@ -54,11 +54,9 @@
 		</Build>
 		<Unit filename="bmad/include/bmad.h" />
 		<Unit filename="bmad/src/bmad.cc" />
-		<Unit filename="fortran_interface/include/fortran_interface.h" />
-		<Unit filename="fortran_interface/src/fortran_interface.cc" />
-		<Unit filename="fortran_interface/src/fortran_interface.f90">
-			<Option weight="0" />
-		</Unit>
+		<Unit filename="fortran_interface/fortran_interface.cc" />
+		<Unit filename="fortran_interface/fortran_interface.h" />
+		<Unit filename="fortran_interface/interface.f90" />
 		<Unit filename="include/arbitrary_electron_beam.h" />
 		<Unit filename="include/beam.h" />
 		<Unit filename="include/constants.h" />

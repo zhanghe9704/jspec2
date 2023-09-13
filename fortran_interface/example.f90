@@ -30,6 +30,7 @@ program main
     real(c_double) :: ds = 0.025
     real(c_double) :: ex = 0.65d-6
     real(c_double) :: ey = 0.13d-6
+    
 
     real(c_double) :: length = 60
     real(c_double) :: n_section = 1
@@ -41,24 +42,22 @@ program main
     real(8) :: gamma, beta, sigma_x, sigma_y
     real(c_double) :: ne = 7.39d9
 
-    integer(c_int) :: n_sample = 10000
+    integer(c_int) :: n_sample = 40000
 
     real(c_double) :: tmp_tr = 0.246
     real(c_double) :: tmp_l = 0.184
 
-    integer(c_intptr_t) :: address
+    ! integer(c_intptr_t) :: address
 
-        gamma = ke/mass + 1
+    gamma = ke/mass + 1
     beta = sqrt(1-gamma ** (-2))
     sigma_x = sqrt(twiss_beta*ex/(beta*gamma))
     sigma_y = sqrt(twiss_beta*ey/(beta*gamma))
 
     print*, "beta: ", beta
     print*, "gamma: ", gamma
-
-
-
-    
+    print*, "sigma_x", sigma_x
+    print*, "sigma_y", sigma_y
 
     my_beam = create_beam(charge, mass, ke, ex, ey, dp, ds, np)
 
@@ -87,9 +86,6 @@ program main
     call ebeam_set_temperature(my_ebeam, tmp_tr, tmp_l)
 
     ! ! Call ecool_rate function using the created objects and some example values for rx, ry, and rs
-    ! ! rx = 1.0d-3
-    ! ! ry = 1.0d-3
-    ! ! rs = 1.0d-2
     rate_ec = create_ecool_rate_calculator()
 
     

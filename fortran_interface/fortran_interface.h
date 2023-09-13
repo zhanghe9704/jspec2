@@ -18,14 +18,14 @@ Ions_MonteCarlo* ions_montecarlo_new(int n) {
    return new Ions_MonteCarlo(n);
 }
 
-Beam* beam_bunched_new(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny,
+Beam* beam_bunched_new(int charge_number, double mass, double kinetic_energy, double emit_nx, double emit_ny,
                        double dp_p, double sigma_s, double n_particle) {
-    return new Beam(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, sigma_s, n_particle);
+    return new Beam(charge_number, mass/k_u, kinetic_energy, emit_nx, emit_ny, dp_p, sigma_s, n_particle);
 }
 
-Beam* beam_coasting_new(int charge_number, double mass_number, double kinetic_energy, double emit_nx, double emit_ny,
+Beam* beam_coasting_new(int charge_number, double mass, double kinetic_energy, double emit_nx, double emit_ny,
                         double dp_p, double n_particle) {
-    return new Beam(charge_number, mass_number, kinetic_energy, emit_nx, emit_ny, dp_p, n_particle);
+    return new Beam(charge_number, mass/k_u, kinetic_energy, emit_nx, emit_ny, dp_p, n_particle);
 }
 //
 Lattice* lattice_new(char* filename, int length) {
@@ -99,7 +99,6 @@ EBeam* elliptic_uniform_bunch_new(double current, double rh, double rv, double l
 
 EBeam* gaussian_bunch_new(double n_electron, double sigma_x, double sigma_y, double sigma_s) {
    auto ptr = new GaussianBunch(n_electron, sigma_x, sigma_y, sigma_s);
-   // std::cout<<ptr<<std::endl;
    return ptr;
 }
 
@@ -118,23 +117,18 @@ void jspec_delete(void* ptr, JSPEC_Class name);
 void ecool_rate1(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, int n_sample, Cooler &cooler, 
            EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
     ecool_obj->ecool_rate(force, ion, n_sample, cooler, ebeam, ring, rx, ry, rs);
-    std::cout<<rx<<' '<<ry<<' '<<rs<<std::endl;
 }
 
 void ecool_rate2(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler, 
            EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
     ecool_obj->ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
-    std::cout<<rx<<' '<<ry<<' '<<rs<<std::endl;
 }
 
 void ebeam_set_gamma(EBeam* ebeam, double gamma) {
-   // std::cout<< ebeam << std::endl;
-   // std::cout<<"set gamma: "<<gamma<<std::endl;
    ebeam->set_gamma(gamma);
 }
 
 void ebeam_set_temperature(EBeam* ebeam, double tr, double tl) {
-   // std::cout<<"set tmp: "<<tr<<' '<<tl<<std::endl;
    ebeam->set_tpr(tr, tl);
 }
 
