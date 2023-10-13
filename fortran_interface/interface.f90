@@ -43,6 +43,11 @@ module jspec
         private
         type(c_ptr) :: obj_ptr = c_null_ptr
     end type ECoolRate
+
+    type, bind(c) :: Simulator
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type Simulator
   
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
@@ -63,6 +68,12 @@ module jspec
         enumerator :: NONMAG_NUM3D
         enumerator :: MESHKOV
         enumerator :: DSM
+    end enum
+
+    enum,bind(c)
+        enumerator :: RMS = 0
+        enumerator :: PARTICLE 
+        enumerator :: TURN_BY_TURN
     end enum
 
     interface
