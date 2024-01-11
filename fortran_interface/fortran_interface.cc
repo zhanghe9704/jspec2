@@ -34,6 +34,10 @@ void jspec_delete(void* ptr, JSPEC_Class name) {
         delete static_cast<ECoolRate*>(ptr);
         break;           
     }
+    case JSPEC_Class::SIMULATOR:{
+        delete static_cast<Simulator*>(ptr);
+        break;           
+    }
     default:
         break;
     }

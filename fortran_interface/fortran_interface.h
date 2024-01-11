@@ -8,10 +8,14 @@
 #include "force.h"
 #include "ions.h"
 #include "ring.h"
+#include "simulator.h"
+#include "rms_dynamic.h"
+#include "particle_model.h"
+#include "turn_by_turn.h"
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS, ECOOLRATE};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS, ECOOLRATE, SIMULATOR};
 
 extern "C" {
 Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -76,6 +80,24 @@ FrictionForceSolver* force_solver_new(ForceFormula formula, int limit=100) {
         }
    }
 }
+
+Simulator* simulator_new(DynamicModel dynamic_model, double time, int n_step) {
+   switch(dynamic_model) {
+        case DynamicModel::RMS: {
+           return new RMSModel(time, n_step);
+        }
+        case DynamicModel::PARTICLE: {
+           return new ParticleModel(time, n_step);
+        }
+        case DynamicModel::TURN_BY_TURN: {
+           return new TurnByTurnModel(time, n_step);
+        }
+        default: {
+           assert(false&&"WRONG DYNAMIC MODEL FOR SIMULATION SELECTED!");
+        }
+   }
+}
+
 //
 EBeam* uniform_cylinder_new(double current, double radius) {
    return new UniformCylinder(current, radius);
