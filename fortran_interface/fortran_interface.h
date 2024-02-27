@@ -15,7 +15,7 @@
 
 #include <string>
 
-enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS, ECOOLRATE, SIMULATOR};
+enum class JSPEC_Class {BEAM, LATTICE, RING, COOLER, FRICTION_FORCE_SOLVER, EBEAM, IONS, ECOOLRATE, SIMULATOR, IBSSOLVER};
 
 extern "C" {
 Ions_MonteCarlo* ions_montecarlo_new(int n) {
@@ -81,6 +81,23 @@ FrictionForceSolver* force_solver_new(ForceFormula formula, int limit=100) {
    }
 }
 
+IBSSolver* ibs_solver_new(IBSModel model, double log_c, double k, int nt = 0) {
+    switch(model) {
+        case IBSModel::BM: {
+            return new IBSSolver_BM(log_c, k);
+        }
+        case IBSModel::BMC: {
+            return new IBSSolver_BM_Complete(nt, log_c, k);
+        }
+        case IBSModel::BMZ: {
+            return new IBSSolver_BMZ(nt, log_c, k);
+        }
+        default: {
+           assert(false&&"WRONG IBS MODEL SELECTED!");
+        }
+    }
+}
+
 Simulator* simulator_new(DynamicModel dynamic_model, double time, int n_step) {
    switch(dynamic_model) {
         case DynamicModel::RMS: {
@@ -96,6 +113,13 @@ Simulator* simulator_new(DynamicModel dynamic_model, double time, int n_step) {
            assert(false&&"WRONG DYNAMIC MODEL FOR SIMULATION SELECTED!");
         }
    }
+}
+
+void simulation_run(Simulator* simulator, Beam& ion, Ions& ion_sample, Cooler& cooler, EBeam& ebeam,
+                     Ring& ring, IBSSolver* ibs_solver, ECoolRate* ecool_solver,
+                     FrictionForceSolver* force_solver) {
+    LuminositySolver* lum_solver = nullptr;
+    simulator->run(ion, ion_sample, cooler, ebeam, ring, ibs_solver, ecool_solver, force_solver, lum_solver);
 }
 
 //
@@ -136,12 +160,12 @@ ECoolRate* ecool_rate_calculator_new() {
 
 void jspec_delete(void* ptr, JSPEC_Class name);
 
-void ecool_rate1(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, int n_sample, Cooler &cooler, 
+void ecool_rate1(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, int n_sample, Cooler &cooler,
            EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
     ecool_obj->ecool_rate(force, ion, n_sample, cooler, ebeam, ring, rx, ry, rs);
 }
 
-void ecool_rate2(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler, 
+void ecool_rate2(ECoolRate* ecool_obj, FrictionForceSolver &force, Beam &ion, Ions &ptcl, Cooler &cooler,
            EBeam &ebeam, Ring &ring, double &rx, double &ry, double &rs) {
     ecool_obj->ecool_rate(force, ion, ptcl, cooler, ebeam, ring, rx, ry, rs);
 }

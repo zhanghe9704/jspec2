@@ -37,6 +37,7 @@ public:
     void invalidate_cache() { cache_invalid = true; }
 
     IBSSolver(double log_c, double k);
+    virtual ~IBSSolver(){};
 
     virtual void rate(const Lattice &lattice, const Beam &beam, double &rx, double &ry, double &rs) = 0;
     virtual std::tuple<double, double, double> rate(const Lattice &lattice, const Beam &beam) = 0;

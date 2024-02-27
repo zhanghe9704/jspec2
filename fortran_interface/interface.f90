@@ -44,20 +44,32 @@ module jspec
         type(c_ptr) :: obj_ptr = c_null_ptr
     end type ECoolRate
 
+    type, bind(c) :: IBSRate
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type IBSRate
+
     type, bind(c) :: Simulator
         private
         type(c_ptr) :: obj_ptr = c_null_ptr
     end type Simulator
-  
+
+    type, bind(c) :: IBSSolver
+        private
+        type(c_ptr) :: obj_ptr = c_null_ptr
+    end type IBSSolver
+
     enum, bind(c)
         enumerator :: JSPEC_Beam = 0
-        enumerator :: JSPEC_Lattice 
+        enumerator :: JSPEC_Lattice
         enumerator :: JSPEC_Ring
         enumerator :: JSPEC_COOELR
         enumerator :: JSPEC_FRICTION_FORCE_SOLVER
         enumerator :: JSPEC_EBEAM
         enumerator :: JSPEC_IONS
         enumerator :: JSPEC_ECOOLRATE
+        enumerator :: JSPEC_SIMULATOR
+        enumerator :: JSPEC_IBSSOLVER
     end enum
 
     enum, bind(c)
@@ -72,8 +84,14 @@ module jspec
 
     enum,bind(c)
         enumerator :: RMS = 0
-        enumerator :: PARTICLE 
+        enumerator :: PARTICLE
         enumerator :: TURN_BY_TURN
+    end enum
+
+    enum,bind(c)
+        enumerator :: BM = 1
+        enumerator :: BMC
+        enumerator :: BMZ
     end enum
 
     interface
@@ -134,7 +152,7 @@ module jspec
         end function ring_lattice_new_c
 
         function cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, disp_h, disp_v, &
-            alpha_h, alpha_v, der_disp_h, der_disp_v) bind(c, name="cooler_new")   
+            alpha_h, alpha_v, der_disp_h, der_disp_v) bind(c, name="cooler_new")
             use iso_c_binding
             import Cooler
             type(Cooler) :: cooler_new_c
@@ -158,6 +176,16 @@ module jspec
             integer(c_int), value :: formula
             integer(c_int), value :: limit
         end function force_solver_new_c
+
+        function ibs_solver_new_c(model, log_c, k, nt) bind(c, name="ibs_solver_new")
+            use iso_c_binding
+            import IBSSolver
+            type(IBSSolver) :: ibs_solver_new_c
+            integer(c_int), value :: model
+            real(c_double), value :: log_c
+            real(c_double), value :: k
+            integer(c_int), value :: nt
+        end function ibs_solver_new_c
 
         function create_uniform_cylinder(current, radius) bind(c, name="uniform_cylinder_new")
             use iso_c_binding
@@ -238,6 +266,30 @@ module jspec
             type(ECoolRate) :: create_ecool_rate_calculator
         end function create_ecool_rate_calculator
 
+        function create_simulator(dynamic_model, time, n_step) bind(C, name="simulator_new")
+            use iso_c_binding
+            import Simulator
+            integer(c_int), intent(in), value :: dynamic_model
+            real(c_double), intent(in), value :: time
+            integer(c_int), intent(in), value :: n_step
+            type(Simulator) :: create_simulator
+        end function create_simulator
+!
+        subroutine simulation_run(dynamic_simulator, ion, ion_sample, e_cooler, e_beam, ion_ring, ibs_solver, ecool_solver, &
+            force_solver) bind(C, name="simulation_run")
+            use iso_c_binding
+            import Simulator, Beam, IonSamples, Cooler, EBeam, Ring, IBSRate, ECoolRate, FrictionForceSolver
+            type(Simulator), intent(in), value :: dynamic_simulator
+            type(Beam), intent(in), value :: ion
+            type(IonSamples), intent(in), value :: ion_sample
+            type(Cooler), intent(in), value :: e_cooler
+            type(EBeam), intent(in), value :: e_beam
+            type(Ring), intent(in), value :: ion_ring
+            type(IBSRate), intent(in), value :: ibs_solver
+            type(ECoolRate), intent(in), value :: ecool_solver
+            type(FrictionForceSolver), intent(in), value :: force_solver
+        end subroutine simulation_run
+
         subroutine jspec_delete(ptr, name) bind(c, name="jspec_delete")
             use iso_c_binding
             type(c_ptr), value :: ptr
@@ -276,7 +328,7 @@ module jspec
             type(EBeam), intent(in), value :: ebeam_ptr
             real(c_double), intent(in), value :: gamma
         end subroutine ebeam_set_gamma
-    
+
         subroutine ebeam_set_temperature(ebeam_ptr, tr, tl) bind(C, name="ebeam_set_temperature")
             use iso_c_binding
             import EBeam
@@ -339,7 +391,7 @@ module jspec
                 cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, &
                                     disp_h, disp_v, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE)
             else
-                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, & 
+                cool = cooler_new_c(length, section_number, magnetic_field, beta_h, beta_v, &
                     0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE, 0.0_C_DOUBLE)
             end if
         end function create_cooler
@@ -359,6 +411,24 @@ module jspec
                 force = force_solver_new_c(formula, 100)
             end if
         end function create_force_solver
+
+        function create_ibs_solver(model, log_c, k, nt) result(ibs_solver)
+            use, intrinsic :: iso_c_binding, only: c_int, c_double
+
+            integer(c_int), intent(in) :: model
+            real(c_double), intent(in) :: log_c
+            real(c_double), intent(in) :: k
+            integer(c_int), intent(in), optional :: nt
+
+            type(IBSSolver) :: ibs_solver
+
+            ! Check for optional arguments and assign default values if they are not present
+             if (present(nt)) then
+                ibs_solver = ibs_solver_new_c(model, log_c, k, nt)
+            else
+                ibs_solver = ibs_solver_new_c(model, log_c, k, 0)
+            end if
+        end function create_ibs_solver
 
         function create_particle_bunch(n_electron, filename, length) result(e_beam)
             use iso_c_binding

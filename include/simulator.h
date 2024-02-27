@@ -64,6 +64,8 @@ class Simulator{
     void set_overwrite(bool b) {overwrite = b; }
     void set_calc_lum(bool b) {calc_luminosity = b; }
 
+    virtual ~Simulator(){};
+
     virtual void run(Beam& ion, Ions& ion_sample, Cooler& cooler, EBeam& ebeam,
                      Ring& ring, IBSSolver* ibs_solver, ECoolRate* ecool_solver,
                      FrictionForceSolver* force_solver, LuminositySolver* lum_solver);

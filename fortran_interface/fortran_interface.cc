@@ -20,23 +20,27 @@ void jspec_delete(void* ptr, JSPEC_Class name) {
     }
     case JSPEC_Class::FRICTION_FORCE_SOLVER:{
         delete static_cast<FrictionForceSolver*>(ptr);
-        break;           
+        break;
     }
     case JSPEC_Class::EBEAM:{
         delete static_cast<EBeam*>(ptr);
-        break;           
+        break;
     }
     case JSPEC_Class::IONS:{
         delete static_cast<Ions_MonteCarlo*>(ptr);
-        break;           
+        break;
     }
     case JSPEC_Class::ECOOLRATE:{
         delete static_cast<ECoolRate*>(ptr);
-        break;           
+        break;
     }
     case JSPEC_Class::SIMULATOR:{
         delete static_cast<Simulator*>(ptr);
-        break;           
+        break;
+    }
+    case JSPEC_Class::IBSSOLVER:{
+        delete static_cast<IBSSolver*>(ptr);
+        break;
     }
     default:
         break;
