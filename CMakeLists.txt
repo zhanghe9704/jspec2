@@ -65,3 +65,26 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${jspec2_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${jspec2_VERSION_MINOR}")
 include(CPack)
 
+option(BUILD_TESTS "Build the tests" OFF)
+if(BUILD_TESTS)
+    # Assuming a Unix-like system; adapt the command for Windows or others as necessary
+    add_custom_command(TARGET jspec2 POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy
+                       $<TARGET_FILE:jspec2> ${CMAKE_SOURCE_DIR}/tests/)
+                       
+    # Add a post-build command to copy the muparser shared library
+    add_custom_target(copy_muparser_lib ALL
+    COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:muparser>
+            ${CMAKE_SOURCE_DIR}/tests/)
+
+	add_dependencies(copy_muparser_lib muparser)
+                      
+    add_subdirectory(tests)
+    
+    add_custom_target(copy_tests_exec ALL
+    COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:tests>
+            ${CMAKE_SOURCE_DIR}/tests/)
+    add_dependencies(copy_tests_exec tests)
+endif()
