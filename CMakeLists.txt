@@ -5,13 +5,21 @@ project(jspec2 VERSION 2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_INSTALL_PREFIX /usr/local)
 
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "..." FORCE)
+# Set a default CMAKE_INSTALL_PREFIX depending on the OS
+if(WIN32)
+    # For Windows, you might want to install in the user's AppData or a similar location
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "..." FORCE)
+elseif(UNIX)
+    set(CMAKE_INSTALL_PREFIX /usr/local)
+
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+      set(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "..." FORCE)
+    endif()
+
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 
 # Optionally, set a variable for the include directory
@@ -56,14 +64,32 @@ if(GSL_FOUND)
 endif()
 
 # Installation rules
-install(TARGETS jspec2
+if(WIN32)
+    # Installation rules for the executable
+    install(TARGETS jspec2
+        RUNTIME DESTINATION ${PROJECT_NAME})
+
+    # Installation rules for the DLLs
+    install(FILES ${CMAKE_SOURCE_DIR}/build/muparser/libmuparser.dll
+                  ${CMAKE_SOURCE_DIR}/build/gsl.dll
+                  ${CMAKE_SOURCE_DIR}/build/gslcblas.dll
+        DESTINATION ${PROJECT_NAME})
+
+    install(CODE "
+        execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory \"\${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/bin\")
+        execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory \"\${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/lib\")
+        execute_process(COMMAND \${CMAKE_COMMAND} -E remove_directory \"\${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/include\")
+    ")
+elseif(UNIX)
+    install(TARGETS jspec2
         RUNTIME DESTINATION bin)
         
-include(InstallRequiredSystemLibraries)
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.md")
-set(CPACK_PACKAGE_VERSION_MAJOR "${jspec2_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${jspec2_VERSION_MINOR}")
-include(CPack)
+    include(InstallRequiredSystemLibraries)
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.md")
+    set(CPACK_PACKAGE_VERSION_MAJOR "${jspec2_VERSION_MAJOR}")
+    set(CPACK_PACKAGE_VERSION_MINOR "${jspec2_VERSION_MINOR}")
+    include(CPack)
+endif()
 
 option(BUILD_TESTS "Build the tests" OFF)
 if(BUILD_TESTS)
@@ -78,7 +104,19 @@ if(BUILD_TESTS)
             $<TARGET_FILE:muparser>
             ${CMAKE_SOURCE_DIR}/tests/)
 
-	add_dependencies(copy_muparser_lib muparser)
+    add_dependencies(copy_muparser_lib muparser)
+
+    if(WIN32)
+       add_custom_target(copy_gsl_lib ALL
+           COMMAND ${CMAKE_COMMAND} -E copy_if_different
+               "${CMAKE_SOURCE_DIR}/build/gsl.dll"
+               "${CMAKE_SOURCE_DIR}/tests/"
+           COMMAND ${CMAKE_COMMAND} -E copy_if_different
+               "${CMAKE_SOURCE_DIR}/build/gslcblas.dll"
+               "${CMAKE_SOURCE_DIR}/tests/"
+       )
+       add_dependencies(copy_gsl_lib GSL::gsl GSL::gslcblas)
+   endif()
                       
     add_subdirectory(tests)
     
@@ -87,4 +125,7 @@ if(BUILD_TESTS)
             $<TARGET_FILE:tests>
             ${CMAKE_SOURCE_DIR}/tests/)
     add_dependencies(copy_tests_exec tests)
+
+   
+
 endif()
