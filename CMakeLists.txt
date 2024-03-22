@@ -6,6 +6,17 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+endif()
+
+
+
 # Set a default CMAKE_INSTALL_PREFIX depending on the OS
 if(WIN32)
     # For Windows, you might want to install in the user's AppData or a similar location
